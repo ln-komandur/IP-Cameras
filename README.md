@@ -5,21 +5,21 @@ Leverage the **FTPs** capability offered by a few Security IP cameras, and uploa
 ## Hardware
 1.   Reolink - RLC-510WA
 2.   Desktop to run Ubuntu 22.04, with reasonable storage to store video clips and photos from multiple IP cameras
-3.   Dualband wifi router with RJ45 and reasonable bandwidth to use the less congested 5G band 
+3.   Dualband wifi router with RJ45 and reasonable bandwidth to use the less congested 5GHz band 
 4.   Display dummy (HDMI / DisplayPort) to use the linux box headless
 
 ## Software
 1.   Ubuntu 22.04 desktop
 2.   vsftpd
 3.   Filezilla
-4.   Reolink RLC-510WA firmware version 1.0.280 (1387_22100633)
+4.   Reolink [RLC-510WA firmware version 1.0.280 (1387_22100633)](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak)
 
 
 ## References
 
 1.   https://www.programbr.com/ubuntu/how-to-install-ftp-server-vsftpd-on-ubuntu/
 2.   https://unix.stackexchange.com/questions/654625/setting-up-vsftp
-3.   https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/ - has the link to the correct firmware version
+3.   https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/ - has the link to the correct firmware version to support **FTPs**
 
 ## On ubuntu desktop
 
@@ -59,7 +59,7 @@ Use relevant settings to automatically power on after a power failure
 
 `sudo ufw allow OpenSSH` # *Allow OpenSSH*
 
-`sudo ufw disable && sudo ufw enable` # *#Disable and enable UFW*
+`sudo ufw disable && sudo ufw enable` # *Disable and enable UFW*
 
 `sudo ufw status` # *Check if UFW is active*
 
@@ -100,16 +100,15 @@ userlist_deny=NO
 ```
 
 **Optional**
-```
-listen_ipv6=NO #(may not use IPv6)
-```
+
+`listen_ipv6=NO` # *May not use IPv6*
+
 
 **Not sure**
-```
-listen = YES
-```
 
-`sudo systemctl restart vsftpd`
+`listen = YES`
+
+`sudo systemctl restart vsftpd` # *Restart vsftpd for changes to take effect*
 
 
 ### Testing with filezilla
@@ -121,16 +120,17 @@ listen = YES
 6.  Test if directories are resrticted. i.e. cannot traverse above home directory
 7.  Test if downloading from ftp location to local location is working
 
-### Testing ftp with display dummy
-Headless operation mode
+### Testing with Headless operation mode
+Plug in the display dummy (in the HDMI or DisplayPort) and test ftp from a client on a different machine
 
-### Testing ftp without any user logging into the desktop
+
+### Testing ftp before any user logs into the desktop
 This simulates a power failure situation
 
 ### Batch job to recode each video clip from H.264 to H.265
 TBD - using ffmpeg commands in a shell script and executing them on schedule as a cronjob
 
-***Questions:*** How will the cronjob run if no user has logged in when recovering from a power failure. Is any automatic login needed? Will this be the `sudo` user or the `ipcamera` user? What are the security issues?
+***Questions:*** How will the cronjob run if no user has logged in when recovering from a power failure. Will this be the `sudo` user or the `ipcamera` user? [Look here for pointers to both questions](https://unix.stackexchange.com/questions/197615/does-a-job-scheduled-in-crontab-run-even-when-i-log-out)  What are the security issues (of running without logging in, and as which user the job runs as)?
 
 ### Use an external drive to store H.265 video clips
 This is to save space on the internal drive
@@ -143,7 +143,7 @@ This is to save space on the internal drive
 ## Connecting each IP Camera (RLC-510WA)
 
 1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) as mentioned in [this forum](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) . ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail
-2.  Provide wifi credentials of the 5G band SSID
+2.  Provide wifi credentials of the 5GHz band SSID
 3.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user. 
     1.  Using `hostname` 
         1.  makes it flexible to connect the linux box to the router either via wifi or RJ45. The latter will save wifi bandwidth for the cameras
@@ -163,7 +163,7 @@ This is to save space on the internal drive
     2.  Wifi mac address of the desktop
     3.  Ethernet mac address of the desktop
     4.  Mac address of any other approved device to access the cameras and the desktop (e.g. phone)
-3.  Scan 5G channels and select a less congested channel 
+3.  Scan 5GHz channels and select a less congested channel 
 4.  If the ftp desktop box needs to be connected to the internet, the ip cameras can still be retrained by setting appropriate *parental controls* in the router
 
 
