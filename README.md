@@ -16,7 +16,7 @@ Connect Wifi IP Cameras to a dedicated Wifi router and upload photos and videos 
 
 1.   https://www.programbr.com/ubuntu/how-to-install-ftp-server-vsftpd-on-ubuntu/
 2.   https://unix.stackexchange.com/questions/654625/setting-up-vsftp
-3.   https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/ 
+3.   https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/ - has the link to the correct firmware version
 
 ## On ubuntu desktop
 
