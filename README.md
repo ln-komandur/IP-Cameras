@@ -4,6 +4,8 @@ Connect Wifi IP Cameras to a dedicated Wifi router and upload photos and videos 
 ## Hardware
 1.   Reolink - RLC-510WA
 2.   Desktop to run Ubuntu 22.04, with reasonable storage to store video clips and photos from multiple IP cameras
+3.   Dualband wifi router with RJ45 and reasonable bandwidth to use the less congested 5G band 
+4.   Display dummy (HDMI / DisplayPort) to use the linux box headless
 
 ## Software
 1.   Ubuntu 22.04 desktop
@@ -20,6 +22,9 @@ Connect Wifi IP Cameras to a dedicated Wifi router and upload photos and videos 
 
 ## On ubuntu desktop
 
+### BIOS
+Use relevant settings to automatically power on after a power failure
+
 ### Install vsftpd
 
 `sudo apt install nala #Use nala to install other software`
@@ -35,7 +40,6 @@ Connect Wifi IP Cameras to a dedicated Wifi router and upload photos and videos 
 `vsftpd -v #Check the version of vsftpd`
 
 `hostname #Get the hostname to provide in Filezilla for test and to provide in each IP Camera`
-
 
 
 ### Configure ufw
@@ -107,7 +111,7 @@ listen = YES
 `sudo systemctl restart vsftpd`
 
 
-### Test with filezilla
+### Testing with filezilla
 1.  Test using `hostname` to connect
 2.  Test using intranet ip address
 3.  Test using 'ipcamera' user credentials to see if connections are successful
@@ -116,16 +120,40 @@ listen = YES
 6.  Test if directories are resrticted. i.e. cannot traverse above home directory
 7.  Test if downloading from ftp location to local location is working
 
-## On each IP Camera
+### Testing ftp with display dummy
+Headless operation mode
+
+### Testing ftp without any user logging into the desktop
+This simulates a power failure situation
+
+### Batch job to recode each video clip from H.264 to H.265
+TBD - using ffmpeg commands in a shell script and executing them on schedule as a cronjob
+
+### Use an external drive to store H.265 video clips
+This is to save space on the internal drive
+1.  Keep photos on local drive as well as external drive (i.e. in case the external drive is lost / stolen)
+2.  Keep only H.265 video clips on external drive
+3.  Do not keep any video clips on local drive after the recoding is successful (keep only if external drive is not connected) 
+
+## Connecting each IP Camera
 
 1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) as mentioned in [this forum](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) . ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail
-2.  Provide wifi credentials
-3.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user
+2.  Provide wifi credentials of the 5G band SSID
+3.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user. Using `hostname` makes it flexible to connect the linux box to the router either via wifi or RJ45. The latter will save wifi bandwidth for the cameras
 4.  Enable the ftps soft switch
 5.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips`
 6.  Save ftp details and test them for a successful connection
 7.  Select record schedules
 8.  Mark sensitivity, areas to avoid for false alarms etc. for persons and vehicles
+
+## Securing the router
+
+1.  Hide the SSID to which IP Cameras connect
+2.  Whitelist the 
+    1.  Wifi mac address of each IP Camera
+    2.  Wifi mac address of the desktop
+    3.  Ethernet mac address of the desktop
+    4.  Mac address of any other approved device to access the cameras and the desktop (e.g. phone)
 
 
 
