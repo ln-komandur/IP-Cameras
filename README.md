@@ -27,55 +27,55 @@ Use relevant settings to automatically power on after a power failure
 
 ### Install vsftpd
 
-`sudo apt install nala #Use nala to install other software`
+`sudo apt install nala` # *Use nala to install other software*
 
 `sudo nala update`
 
-`sudo nala install filezilla #Install filezilla`
+`sudo nala install filezilla` # *Install filezilla*
 
-`sudo nala install vsftpd #Install vsftpd`
+`sudo nala install vsftpd` # *Install vsftpd*
 
-`sudo service vsftpd status #Check if vsftpd service is active/running`
+`sudo service vsftpd status` # *Check if vsftpd service is active/running*
 
-`vsftpd -v #Check the version of vsftpd`
+`vsftpd -v` # *Check the version of vsftpd*
 
-`hostname #Get the hostname to provide in Filezilla for test and to provide in each IP Camera`
+`hostname` # *Get the hostname to provide in Filezilla for test and to provide in each IP Camera*
 
 
 ### Configure ufw
 
-`sudo ufw status #Check the firewall's status. Could be inactive` 
+`sudo ufw status` #*Check the firewall's status. Could be inactive*
 
-`sudo ufw allow 20/tcp #Open port 20 (FTP data port)`
+`sudo ufw allow 20/tcp` # *Open port 20 (FTP data port)*
 
-`sudo ufw allow 21/tcp #Open port 21 (FTP command port)`
+`sudo ufw allow 21/tcp` # *Open port 21 (FTP command port)*
 
-`sudo ufw allow 40000:50000/tcp #Open ports 40000-50000 for the range of passive FTP`
+`sudo ufw allow 40000:50000/tcp` # *Open ports 40000-50000 for the range of passive FTP*
 
-`sudo ufw allow 990/tcp #Open port 990 for TLS`
+`sudo ufw allow 990/tcp` # *Open port 990 for TLS*
 
-`sudo nala install ssh #Install ssh if not already installed`
+`sudo nala install ssh` # *Install ssh if not already installed*
 
-`sudo ufw allow OpenSSH #Allow OpenSSH`
+`sudo ufw allow OpenSSH` # *Allow OpenSSH*
 
-`sudo ufw disable && sudo ufw enable ##Disable and enable UFW`
+`sudo ufw disable && sudo ufw enable` # *#Disable and enable UFW*
 
-`sudo ufw status #Check if UFW is active`
+`sudo ufw status` # *Check if UFW is active*
 
 
 ### ftp user id
-`sudo adduser ipcamera #Add a user just to ftp photos and video clips from ip cameras`
+`sudo adduser ipcamera` # *Add a user just to ftp photos and video clips from ip cameras*
 
-`echo "cameras" | sudo tee -a /etc/vsftpd.userlist #Add that user to the list of users who can use vsftpd`
+`echo "cameras" | sudo tee -a /etc/vsftpd.userlist` # *Add that user to the list of users who can use vsftpd*
 
-`cat /etc/vsftpd.userlist #Check if the user is added to the list of users who can use vsftpd`
+`cat /etc/vsftpd.userlist` # *Check if the user is added to the list of users who can use vsftpd*
 
 ### Generate certificate
-`sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem #generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 365 days`
+`sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem` # *generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 365 days*
 
 
 ### Configure vsftpd
-`sudo nano /etc/vsftpd.conf #Open the conf file`
+`sudo nano /etc/vsftpd.conf` # *Open the conf file*
 
 Edit as needed for the following fields and values
 ```
