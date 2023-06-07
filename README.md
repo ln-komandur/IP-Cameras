@@ -20,6 +20,7 @@ Leverage the **FTPs** capability offered by a few Security IP cameras, and uploa
 1.   https://www.programbr.com/ubuntu/how-to-install-ftp-server-vsftpd-on-ubuntu/
 2.   https://unix.stackexchange.com/questions/654625/setting-up-vsftp
 3.   https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/ - has the link to the correct firmware version to support **FTPs**
+4.   https://docs.openeuler.org/en/docs/20.09/docs/Administration/configuring-the-ftp-server.html - Explains the parameters to configure vsftpd
 
 ## On ubuntu desktop
 
@@ -106,8 +107,9 @@ userlist_deny=NO
 
 **Not sure**
 
-`listen = YES`
+`listen = YES` # Refer [this link](https://www.ibiblio.org/pub/Linux/docs/linux-doc-project/linuxfocus/English/Archives/lf-2004_07-0341.pdf) on using standalone mode or not
 
+### Restart vsftpd
 `sudo systemctl restart vsftpd` # *Restart vsftpd for changes to take effect*
 
 
@@ -130,7 +132,10 @@ This simulates a power failure situation
 ### Batch job to recode each video clip from H.264 to H.265
 TBD - using ffmpeg commands in a shell script and executing them on schedule as a cronjob
 
-***Questions:*** How will the cronjob run if no user has logged in when recovering from a power failure. Will this be the `sudo` user or the `ipcamera` user? [Look here for pointers to both questions](https://unix.stackexchange.com/questions/197615/does-a-job-scheduled-in-crontab-run-even-when-i-log-out)  What are the security issues (of running without logging in, and as which user the job runs as)?
+***Questions:*** 
+1.  How will the cronjob run if no user has logged in when recovering from a power failure. Will this be the `sudo` user or the `ipcamera` user? 
+    1.  [Look here for pointers to both questions](https://unix.stackexchange.com/questions/197615/does-a-job-scheduled-in-crontab-run-even-when-i-log-out)  
+2.  What are the security issues (of running without logging in, and as which user the job runs as)?
 
 ### Use an external drive to store H.265 video clips
 This is to save space on the internal drive
@@ -164,6 +169,6 @@ This is to save space on the internal drive
     3.  Ethernet mac address of the desktop
     4.  Mac address of any other approved device to access the cameras and the desktop (e.g. phone)
 3.  Scan 5GHz channels and select a less congested channel 
-4.  If the ftp desktop box needs to be connected to the internet, the ip cameras can still be retrained by setting appropriate *parental controls* in the router
+4.  If the ftp desktop box needs to be connected to the internet, the ip cameras can still be restrained by setting appropriate *parental controls* in the router
 
 
