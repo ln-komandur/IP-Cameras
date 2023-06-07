@@ -1,6 +1,6 @@
 # IP-Cameras
-## Introduction
-This project leverages the FTPs capability offered by a few Security IP cameras, and uploads motion video clips and photos on a local linux ftp server. The set-up is physically isolated from the internet unless otherwise desired.
+## Introduction / Purpose
+Leverage the **FTPs** capability offered by a few Security IP cameras, and upload motion video clips and photos to a local linux ftp server (that has TLS enabled). Physically isolate the set-up from the internet unless otherwise desired.
 
 ## Hardware
 1.   Reolink - RLC-510WA
@@ -130,22 +130,30 @@ This simulates a power failure situation
 ### Batch job to recode each video clip from H.264 to H.265
 TBD - using ffmpeg commands in a shell script and executing them on schedule as a cronjob
 
+***Questions:*** How will the cronjob run if no user has logged in when recovering from a power failure. Is any automatic login needed? Will this be the `sudo` user or the `ipcamera` user? What are the security issues?
+
 ### Use an external drive to store H.265 video clips
 This is to save space on the internal drive
 1.  Keep photos on local drive as well as external drive (i.e. in case the external drive is lost / stolen)
 2.  Keep only H.265 video clips on external drive
 3.  Do not keep any video clips on local drive after the recoding is successful (keep only if external drive is not connected) 
+4.  Ensure that the external drive is automatically mounted upon power on with mount point entries in `/etc/fstab`
+5.  Ensure that the `sudo` user (not `ipcamera` user) has all permissions to write to the external drive. This is usually so, but just ensure that it is happening.  See ***Questions under recoding each video clip***
 
-## Connecting each IP Camera
+## Connecting each IP Camera (RLC-510WA)
 
 1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) as mentioned in [this forum](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) . ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail
 2.  Provide wifi credentials of the 5G band SSID
-3.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user. Using `hostname` makes it flexible to connect the linux box to the router either via wifi or RJ45. The latter will save wifi bandwidth for the cameras
-4.  Enable the ftps soft switch
-5.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips`
-6.  Save ftp details and test them for a successful connection
-7.  Select record schedules
-8.  Mark sensitivity, areas to avoid for false alarms etc. for persons and vehicles
+3.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user. 
+    1.  Using `hostname` 
+        1.  makes it flexible to connect the linux box to the router either via wifi or RJ45. The latter will save wifi bandwidth for the cameras
+        2.  helps the cameras find and connect to the desktop ftp box, even if the router allocates a different ip address to it
+5.  Enable the ftps soft switch
+6.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips`
+7.  Save ftp details and test them for a successful connection
+8.  Select record schedules
+9.  Enable audio recording
+9.  Mark sensitivity, areas to avoid for false alarms etc. for persons and vehicles
 
 ## Securing the router
 
@@ -155,6 +163,7 @@ This is to save space on the internal drive
     2.  Wifi mac address of the desktop
     3.  Ethernet mac address of the desktop
     4.  Mac address of any other approved device to access the cameras and the desktop (e.g. phone)
-
+3.  Scan 5G channels and select a less congested channel 
+4.  If the ftp desktop box needs to be connected to the internet, the ip cameras can still be retrained by setting appropriate *parental controls* in the router
 
 
