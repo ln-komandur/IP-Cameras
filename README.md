@@ -1,6 +1,7 @@
 # IP-Cameras
+## Introduction
+This project leverages the FTPs capability offered by a few Security IP cameras, and uploads motion video clips and photos on a local linux ftp server. The set-up is physically isolated from the internet unless otherwise desired.
 
-Connect Wifi IP Cameras to a dedicated Wifi router and upload photos and videos from them to an local ftp server.
 ## Hardware
 1.   Reolink - RLC-510WA
 2.   Desktop to run Ubuntu 22.04, with reasonable storage to store video clips and photos from multiple IP cameras
