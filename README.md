@@ -3,7 +3,7 @@
 Connect Wifi IP Cameras to a dedicated Wifi router and upload photos and videos from them to an local ftp server.
 ## Hardware
 1.   Reolink - RLC-510WA
-2.   Desktop that can run Ubuntu 22.04, with reasonable storage to store video clips and photos
+2.   Desktop to run Ubuntu 22.04, with reasonable storage to store video clips and photos from multiple IP cameras
 
 ## Software
 1.   Ubuntu 22.04 desktop
@@ -22,62 +22,58 @@ Connect Wifi IP Cameras to a dedicated Wifi router and upload photos and videos 
 
 ### Install vsftpd
 
-`sudo apt install nala`
+`sudo apt install nala #Use nala to install other software`
 
 `sudo nala update`
 
-`sudo nala install filezilla`
+`sudo nala install filezilla #Install filezilla`
 
-`sudo nala install vsftpd`
+`sudo nala install vsftpd #Install vsftpd`
 
-`sudo service vsftpd status`
+`sudo service vsftpd status #Check if vsftpd service is active/running`
 
-`sudo nano /etc/vsftpd.conf`
+`vsftpd -v #Check the version of vsftpd`
 
-`hostname`
+`hostname #Get the hostname to provide in Filezilla for test and to provide in each IP Camera`
 
-`vsftpd -v`
 
 
 ### Configure ufw
 
-`sudo ufw status` 
+`sudo ufw status #Check the firewall's status. Could be inactive` 
 
-`sudo ufw allow 20/tcp`
+`sudo ufw allow 20/tcp #Open port 20 (FTP data port)`
 
-`sudo ufw allow 21/tcp`
+`sudo ufw allow 21/tcp #Open port 21 (FTP command port)`
 
-`sudo ufw allow 40000:50000/tcp`
+`sudo ufw allow 40000:50000/tcp #Open ports 40000-50000 for the range of passive FTP`
 
-`sudo ufw allow 990/tcp`
+`sudo ufw allow 990/tcp #Open port 990 for TLS`
 
-`sudo ufw allow OpenSSH`
+`sudo nala install ssh #Install ssh if not already installed`
 
-`sudo nala install ssh`
+`sudo ufw allow OpenSSH #Allow OpenSSH`
 
-`sudo ufw allow OpenSSH`
+`sudo ufw disable && sudo ufw enable ##Disable and enable UFW`
 
-`sudo ufw disable`
-
-`sudo ufw enable`
-
-`sudo ufw status`
+`sudo ufw status #Check if UFW is active`
 
 
 ### ftp user id
-`sudo adduser ipcamera`
+`sudo adduser ipcamera #Add a user just to ftp photos and video clips from ip cameras`
 
-`echo "cameras" | sudo tee -a /etc/vsftpd.userlist`
+`echo "cameras" | sudo tee -a /etc/vsftpd.userlist #Add that user to the list of users who can use vsftpd`
 
-`cat /etc/vsftpd.userlist`
+`cat /etc/vsftpd.userlist #Check if the user is added to the list of users who can use vsftpd`
 
 ### Generate certificate
-`sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem`
+`sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem #generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 365 days`
 
 
 ### Configure vsftpd
-`sudo nano /etc/vsftpd.conf`
-  
+`sudo nano /etc/vsftpd.conf #Open the conf file`
+
+Edit as needed for the following fields and values
 ```
 anonymous_enable=NO
 local_enable=YES
@@ -98,12 +94,12 @@ userlist_deny=NO
 userlist_deny=NO
 ```
 
-**Optional
+**Optional**
 ```
-listen_ipv6=NO #(we may do not use IPv6)
+listen_ipv6=NO #(may not use IPv6)
 ```
 
-**Not sure
+**Not sure**
 ```
 listen = YES
 ```
@@ -112,19 +108,24 @@ listen = YES
 
 
 ### Test with filezilla
-1.  Test using hostname
+1.  Test using `hostname` to connect
 2.  Test using intranet ip address
-3.  Test if TLS is working (from the certificate shown as well as messages)
-4.  Test if directories are resrticted
-5.  Test if downloading from ftp location to local location is working
+3.  Test using 'ipcamera' user credentials to see if connections are successful
+4.  Test using other user credentials to see if connections are unsuccessful
+5.  Test if TLS is working (from the certificate shown as well as login messages)
+6.  Test if directories are resrticted. i.e. cannot traverse above home directory
+7.  Test if downloading from ftp location to local location is working
 
 ## On each IP Camera
 
-1.  Update firmware to version 1.0.280 to use ftps (protocol)
-2.  Provide the (local) hostname of the ftp box (not local ip address)
-3.  Provide wifi credentials
-4.  Select record schedules
-5.  Mark sensitivity, areas to avoid for false alarms etc.
+1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) as mentioned in [this forum](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) . ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail
+2.  Provide wifi credentials
+3.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user
+4.  Enable the ftps soft switch
+5.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips`
+6.  Save ftp details and test them for a successful connection
+7.  Select record schedules
+8.  Mark sensitivity, areas to avoid for false alarms etc. for persons and vehicles
 
 
 
