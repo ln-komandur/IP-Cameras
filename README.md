@@ -145,23 +145,50 @@ This is to save space on the internal drive
 4.  Ensure that the external drive is automatically mounted upon power on with mount point entries in `/etc/fstab`
 5.  Ensure that the `sudo` user (not `ipcamera` user) has all permissions to write to the external drive. This is usually so, but just ensure that it is happening.  See ***Questions under recoding each video clip***
 
-`mkdir H265` # *Create a separate folder to store H265 videos*
-
-Save the below shell script as `batch-H64 to H265.sh`
+Save the below shell script as `H264_to_H265.sh`. Each H.265 video will be stored in the same directory as a .mpg file
 
 ```
-INPUT="$1"
-for i in *.mp4 ; do
-    ffmpeg -i "$i" -c:v libx265 -vtag hvc1 "$i.ts"
-    mv "$i.ts" "./H265/$i.mpg"
-    sleep 3
-done
+# Adapted from https://stackoverflow.com/questions/56717674/code-must-find-all-mp4-files-within-subdirectory-to-compress-using-ffmpeg
+# This script can take the name of the directory under which recursive conversion needs to be done as an argument. If no arguments are given, conversion will begin with the directory where this script is executed from
+
+
+# Define the function to convert H264 to H265
+H264_to_H265() {
+    cd "$1" # Change to a directory only if an argument is passed. The first call will not have it, and will therefore be the directory where the script is executed from
+    echo pwd is $PWD
+    for listed_name in *; do # Find all files and directories
+        if [[ -d "$listed_name" ]]; then # If the name is a directory. i.e. there is a directory by this name
+	    echo "This is a directory. Its name is " ${listed_name}
+            H264_to_H265 "$listed_name" # Recurse into that directory
+        elif [[ "$listed_name" == *.mp4 ]]; then # If the name is an mp4 file
+            echo "This is an mp4 file. Its directory is" ${PWD}
+            echo "File name with ts is" ${listed_name%.*}.ts
+            
+            H265_TS_Video="${listed_name:0: -4}.ts" # Saving the output to .ts format, is useful to not overwrite source files.
+            echo Converting "$listed_name" to "$H265_TS_Video"     # run your command here
+            ffmpeg -i "$listed_name" -c:v libx265 -vtag hvc1 "$H265_TS_Video"
+            
+	    echo Renaming "$H265_TS_Video" to  "${H265_TS_Video%.*}.mpg" # Rename the ts file as mpg file
+	    mv "$H265_TS_Video" "${H265_TS_Video%.*}.mpg" # Converts the file extension to MPG in the same directory. This can be set up to send it to any directory.
+
+        fi
+    done
+    cd .. # Go one level up to traverse sibling directories
+} # End of function definition
+
+
+# Main call below
+
+H264_to_H265 $1 # Call the function for THE FIRST CALL here. If a directory is originally passed as an argument, then use it here
 ```
-`chmod +x batch-H64\ to\ H265.sh` # *Provide execute permissions to the script*
+`chmod +x H264_to_H265.sh` # *Permit executing the script*
 
 Refer [this for the command to convert videos one at a time](https://stackoverflow.com/questions/58742765/convert-videos-from-264-to-265-hevc-with-ffmpeg)
 
-Refer [this for doing a batch conversion but in the reverse direction](https://askubuntu.com/questions/707397/batch-convert-h-265-mkv-to-h-264-with-ffmpeg-to-make-files-compatible-for-re-enc)
+Refer [this to find all MP4 files within subdirectory to compress using ffmpeg](https://stackoverflow.com/questions/56717674/code-must-find-all-mp4-files-within-subdirectory-to-compress-using-ffmpeg)
+
+Refer [this to do a batch conversion but in the reverse direction](https://askubuntu.com/questions/707397/batch-convert-h-265-mkv-to-h-264-with-ffmpeg-to-make-files-compatible-for-re-enc). This covers `.ts` file extensions
+
 
 ## On each IP Camera (RLC-510WA)
 
