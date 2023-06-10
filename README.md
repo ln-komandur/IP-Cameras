@@ -145,6 +145,24 @@ This is to save space on the internal drive
 4.  Ensure that the external drive is automatically mounted upon power on with mount point entries in `/etc/fstab`
 5.  Ensure that the `sudo` user (not `ipcamera` user) has all permissions to write to the external drive. This is usually so, but just ensure that it is happening.  See ***Questions under recoding each video clip***
 
+`mkdir H265` # *Create a separate folder to store H265 videos*
+
+Save the below shell script as `batch-H64 to H265.sh`
+
+```
+INPUT="$1"
+for i in *.mp4 ; do
+    ffmpeg -i "$i" -c:v libx265 -vtag hvc1 "$i.ts"
+    mv "$i.ts" "./H265/$i.mpg"
+    sleep 3
+done
+```
+`chmod +x batch-H64\ to\ H265.sh` # *Provide execute permissions to the script*
+
+Refer [this for the command to convert videos one at a time](https://stackoverflow.com/questions/58742765/convert-videos-from-264-to-265-hevc-with-ffmpeg)
+
+Refer [this for doing a batch conversion but in the reverse direction](https://askubuntu.com/questions/707397/batch-convert-h-265-mkv-to-h-264-with-ffmpeg-to-make-files-compatible-for-re-enc)
+
 ## On each IP Camera (RLC-510WA)
 
 1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) as mentioned in [this forum](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) . ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail
@@ -153,7 +171,7 @@ This is to save space on the internal drive
 1.  Provide wifi credentials of the 5GHz band SSID
 2.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user. 
     1.  Using `hostname` 
-        1.  makes it flexible to connect the linux box to the router either via wifi or RJ45. The latter will save wifi bandwidth for the cameras
+        1.  makes it flexible to connect the linux box to the router either via wifi or RJ45. 
         2.  helps the cameras find and connect to the desktop ftp box, even if the router allocates a different ip address to it
 
 ### Provide FTPs details
@@ -172,7 +190,7 @@ This is to save space on the internal drive
 
 
 ## Securing the router
-1.  Try to set a common SSID for 2.4GHz and 5GHz so that devices can select them automatically
+1.  Avoid setting a common SSID for 2.4GHz and 5GHz so that devices can select them automatically. Devices may then pick the slower but stronger 2.4GHz band all the time instead of the less stronger but faster 5GHz band
 2.  Hide the SSID to which IP Cameras connect
 3.  Whitelist the 
     1.  Wifi mac address of each IP Camera
@@ -184,3 +202,16 @@ This is to save space on the internal drive
     1.  appropriate *parental controls* in the router 
     2.  rules in the router firewall
     3.  Setting the gateway the same as the IP Address of the camera in the camera IP settings. Refer [this approach](https://medium.com/@ShinobiSystems/how-to-stop-a-reolink-cameras-or-others-from-sending-unauthorized-data-to-offsite-locations-47f6d1df3137) for more details
+6. Connecting the ftp box to the router via RJ45
+    1. Saves wifi bandwidth for the cameras
+    2. Ensure that the router does not append any characters to the `hostname` when connecting via RJ45, and remove them
+
+## Shutdown the ftp headless box remotely from within the same network
+
+Refer [this](https://superuser.com/questions/703232/how-to-shut-down-a-networked-linux-pc)
+
+`ssh <username on ftp box>@<host name of ftp box>` # *Connect to the ftp box from another linux PC on the same network, and authenticate with their password*
+
+`sudo shutdown -h now` # *And authenticate with the password for the sudo user*
+
+
