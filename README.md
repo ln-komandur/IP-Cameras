@@ -145,30 +145,42 @@ This is to save space on the internal drive
 4.  Ensure that the external drive is automatically mounted upon power on with mount point entries in `/etc/fstab`
 5.  Ensure that the `sudo` user (not `ipcamera` user) has all permissions to write to the external drive. This is usually so, but just ensure that it is happening.  See ***Questions under recoding each video clip***
 
-## Connecting each IP Camera (RLC-510WA)
+## On each IP Camera (RLC-510WA)
 
 1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) as mentioned in [this forum](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) . ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail
-2.  Provide wifi credentials of the 5GHz band SSID
-3.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user. 
+
+### Connect to wifi
+1.  Provide wifi credentials of the 5GHz band SSID
+2.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user. 
     1.  Using `hostname` 
         1.  makes it flexible to connect the linux box to the router either via wifi or RJ45. The latter will save wifi bandwidth for the cameras
         2.  helps the cameras find and connect to the desktop ftp box, even if the router allocates a different ip address to it
-5.  Enable the ftps soft switch
-6.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips`
-7.  Save ftp details and test them for a successful connection
-8.  Select record schedules
-9.  Enable audio recording
-9.  Mark sensitivity, areas to avoid for false alarms etc. for persons and vehicles
+
+### Provide FTPs details
+1.  Enable the ftps soft switch
+2.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips`
+3.  Save ftp details and test them for a successful connection
+
+### Configure recording
+1.  Remove watermark
+2.  Select record schedules
+3.  Enable audio recording
+4.  Mark sensitivity, areas to avoid for false alarms etc. for persons and vehicles
+
+### Secure
+1.  Set a strong admin password
+
 
 ## Securing the router
-
-1.  Hide the SSID to which IP Cameras connect
-2.  Whitelist the 
+1.  Try to set a common SSID for 2.4GHz and 5GHz so that devices can select them automatically
+2.  Hide the SSID to which IP Cameras connect
+3.  Whitelist the 
     1.  Wifi mac address of each IP Camera
     2.  Wifi mac address of the desktop
     3.  Ethernet mac address of the desktop
     4.  Mac address of any other approved device to access the cameras and the desktop (e.g. phone)
-3.  Scan 5GHz channels and select a less congested channel 
-4.  If the ftp desktop box needs to be connected to the internet, the ip cameras can still be restrained by setting appropriate *parental controls* in the router
-
-
+4.  Scan 5GHz channels and select a less congested channel 
+5.  If the ftp desktop box needs to be connected to the internet, the ip cameras can still be restrained by setting
+    1.  appropriate *parental controls* in the router 
+    2.  rules in the router firewall
+    3.  Setting the gateway the same as the IP Address of the camera in the camera IP settings. Refer [this] (https://medium.com/@ShinobiSystems/how-to-stop-a-reolink-cameras-or-others-from-sending-unauthorized-data-to-offsite-locations-47f6d1df3137)
