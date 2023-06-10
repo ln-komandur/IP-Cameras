@@ -183,4 +183,4 @@ This is to save space on the internal drive
 5.  If the ftp desktop box needs to be connected to the internet, the ip cameras can still be restrained by setting
     1.  appropriate *parental controls* in the router 
     2.  rules in the router firewall
-    3.  Setting the gateway the same as the IP Address of the camera in the camera IP settings. Refer [this] (https://medium.com/@ShinobiSystems/how-to-stop-a-reolink-cameras-or-others-from-sending-unauthorized-data-to-offsite-locations-47f6d1df3137)
+    3.  Setting the gateway the same as the IP Address of the camera in the camera IP settings. Refer [this approach](https://medium.com/@ShinobiSystems/how-to-stop-a-reolink-cameras-or-others-from-sending-unauthorized-data-to-offsite-locations-47f6d1df3137) for more details
