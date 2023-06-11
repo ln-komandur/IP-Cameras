@@ -68,12 +68,12 @@ Use relevant settings to automatically power on after a power failure
 ### ftp user id
 `sudo adduser ipcamera` # *Add a user just to ftp photos and video clips from ip cameras*
 
-`echo "cameras" | sudo tee -a /etc/vsftpd.userlist` # *Add that user to the list of users who can use vsftpd*
+`echo "ipcamera" | sudo tee -a /etc/vsftpd.userlist` # *Add that user to the list of users who can use vsftpd*
 
 `cat /etc/vsftpd.userlist` # *Check if the user is added to the list of users who can use vsftpd*
 
 ### Generate certificate
-`sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem` # *generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 365 days*
+`sudo openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem` # *generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 7300 days*
 
 
 ### Configure vsftpd
