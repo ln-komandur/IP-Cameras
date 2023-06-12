@@ -13,11 +13,11 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read line; do
         filename=$(echo "$line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') #https://www.baeldung.com/linux/process-a-bash-variable-with-sed
         echo tail line file name is "$filename"
         full_file_path="$user_home""$filename"
-        echo full file path is "$full_file_path"
+
         if [[ "$filename" == *mp4 ]]; then
-	    echo mp4file is uploaded here "$filename"
+	    echo An mp4 file is uploaded at "$full_file_path"
 	else
-	    echo "$filename" is not mp4
+	    echo "$full_file_path" is not an mp4 file
         fi
     fi
 done
