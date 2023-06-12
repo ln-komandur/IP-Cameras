@@ -15,7 +15,30 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read line; do
         full_file_path="$user_home""$filename"
 
         if [[ "$filename" == *mp4 ]]; then
+            
 	    echo An mp4 file is uploaded at "$full_file_path"
+	    ## The conversion can be spawned as a separate thread so that the conversion itself does not hold up the tail watch for other mp4 files getting uploaded
+	    
+	    H265_TS_Video="${full_file_path:0: -4}.ts" # Saving the output to .ts format, is useful to not overwrite source files.
+	    echo Converting "$full_file_path" to "$H265_TS_Video"     # run your command here
+            RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
+            ffmpeg -i "$full_file_path" -c:v libx265 -vtag hvc1 "$H265_TS_Video"
+ 	    if [ $RESULT -eq 0 ]; then
+	       echo CONVERTED
+	       echo Renaming "$H265_TS_Video" to  "${H265_TS_Video%.*}.mpg" # Rename the ts file as mpg file
+	       mv "$H265_TS_Video" "${H265_TS_Video%.*}.mpg" # Converts the file extension to MPG in the same directory. This can be set up to send it to any directory.
+	       if [ $RESULT -eq 0 ]; then
+	           echo RENAMED TS to MPG. Deleting H.264
+	           rm "$full_file_path"
+	       else
+	           echo FAILED to rename
+	       fi
+	    else
+	       echo FAILED to convert
+	    fi
+	    
+	    ## This is the end of the conversion that can be spawned as a separate thread
+	    
 	else
 	    echo "$full_file_path" is not an mp4 file
         fi
