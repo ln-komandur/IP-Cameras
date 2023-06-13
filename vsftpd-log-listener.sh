@@ -24,6 +24,9 @@ function convert_H264_to_H265 ()
     fi
 }
 
+#This listener filters out successful uploads and then converts MP4 files from H.264 video codec to H.265 video codec and saves the latter as .MPG
+#It (strives to) runs the conversion activity as a separate process
+
 tail -f -s 5 -n 1 /var/log/vsftpd.log | while read line; do
     if echo "$line" | grep -q 'OK UPLOAD:'; then
         username=$(echo "$line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/')
