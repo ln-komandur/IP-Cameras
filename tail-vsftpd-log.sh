@@ -38,6 +38,7 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read line; do
         if [[ "$filename" == *mp4 ]]; then
             
 	    echo An mp4 file is uploaded at "$full_file_path"
+            #https://bash.cyberciti.biz/guide/Putting_functions_in_background
             convert_H264_to_H265 "$full_file_path" & # Run the conversion as a separate process so that the conversion itself does not hold up the tail watch for other mp4 files getting uploaded
 	else
 	    echo "$full_file_path" is not an mp4 file
