@@ -129,31 +129,52 @@ Plug in the display dummy (in the HDMI or DisplayPort) and test ftp from a clien
 ### Testing ftp before any user logs into the desktop
 This simulates a power failure situation
 
-### Batch job to recode each video clip from H.264 to H.265
-TBD - using ffmpeg commands in a shell script and executing them on schedule as a cronjob
+### Recode each video clip from H.264 codec to H.265 codec
 
-Download the shell script [H264_to_H265.sh](H264_to_H265.sh). 
+This halves the space needed to store videos. 
 
-`chmod +x H264_to_H265.sh` # *Permit executing the script*
+Download the [vsftpd-log-listener.sh](vsftpd-log-listener.sh), that watches the vsftpd log for successful uploads, and then converts .mp4 files with H.264 codecs to .mpg files with H.265 codecs. It runs the conversion of each .mp4 files as a separate process. Each H.265 video will be stored in the same directory as a .mpg file. The original H.264 file (as .mp4) will be deleted after successful conversion.
 
-`./H264_to_H265.sh` # Execute and test it. Each H.265 video will be stored in the same directory as a .mpg file. The original H.264 file (as .mp4) will be deleted after successful conversion.
+`sudo chmod +x vsftpd-log-listener.sh` # *Permit executing the script*
 
-Refer [this for the command to convert videos one at a time](https://stackoverflow.com/questions/58742765/convert-videos-from-264-to-265-hevc-with-ffmpeg)
+`sudo mkdir /home/ipcamera/my-vsftpd` # *Create a directory to store the users shell scripts*
 
-Refer [this to find all MP4 files within subdirectory to compress using ffmpeg](https://stackoverflow.com/questions/56717674/code-must-find-all-mp4-files-within-subdirectory-to-compress-using-ffmpeg)
+`sudo mv vsftpd-log-listener.sh /home/cameras/my-vsftpd/` # *Move the listener to the user's directory where shell scripts would be stored*
 
-Refer [this to do a batch conversion but in the reverse direction](https://askubuntu.com/questions/707397/batch-convert-h-265-mkv-to-h-264-with-ffmpeg-to-make-files-compatible-for-re-enc). This covers `.ts` file extensions
+`sudo chown -R ipcamera:ipcamera /home/cameras/my-vsftpd` # *Change the ownership and group of the directory and all contents under it to the ipcamera user and group*
 
-***Questions:*** 
-1.  How will the cronjob run if no user has logged in when recovering from a power failure. Will this be the `sudo` user or the `ipcamera` user? 
-    1.  [Look here for pointers to both questions](https://unix.stackexchange.com/questions/197615/does-a-job-scheduled-in-crontab-run-even-when-i-log-out)  
-2.  What are the security issues (of running without logging in, and as which user the job runs as)?
+**Run the listener as a service**
+
+Refer [How to Run Shell Script as Systemd in Linux](https://tecadmin.net/run-shell-script-as-systemd-service/)
+
+`sudo nano /lib/systemd/system/vsftpd-log-listener.service` # *Create a service for the listener*
+
+Copy the following lines and save the file
+```
+[Unit]
+Description=Watches vsftp log for successful uploads, and converts .mp4 files with H.264 codecs to .mpg files with H.265 codecs
+
+[Service]
+ExecStart=/home/ipcamera/my-vsftpd/vsftpd-log-listener.sh
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+
+`sudo systemctl daemon-reload` # *Reload the systemctl daemon to read the new file, and each time it after making any changes in .service file.*
+
+`sudo systemctl enable vsftpd-log-listener.service` # *Enable the service to start on system boot*
+
+`sudo systemctl start vsftpd-log-listener.service`# *Start the service now*
+
+`sudo systemctl status vsftpd-log-listener.service` # *Verify the script is up and running as a systemd service.*
 
 ### Use an external drive to store H.265 video clips
 This is to save space on the internal drive
-1.  Keep photos on local drive as well as external drive (i.e. in case the external drive is lost / stolen)
+1.  Keep photos on local drive as well as external drive i.e. helps in case the external drive is lost / stolen
 2.  Keep only H.265 video clips on external drive
-3.  Do not keep any video clips on local drive after the recoding is successful (keep only if external drive is not connected) 
+3.  Do not keep any video clips on local drive after the recoding is successful i.e. keep only if external drive is not connected
 4.  Ensure that the external drive is automatically mounted upon power on with mount point entries in `/etc/fstab`
 5.  Ensure that the `sudo` user (not `ipcamera` user) has all permissions to write to the external drive. This is usually so, but just ensure that it is happening.  See ***Questions under recoding each video clip***
 
@@ -180,7 +201,7 @@ This is to save space on the internal drive
 3.  Enable audio recording
 4.  Mark sensitivity, areas to avoid for false alarms etc. for persons and vehicles
 
-### Secure
+### Secure the cameras login
 1.  Set a strong admin password
 
 
@@ -208,5 +229,14 @@ Refer [this](https://superuser.com/questions/703232/how-to-shut-down-a-networked
 `ssh <username on ftp box>@<host name of ftp box>` # *Connect to the ftp box from another linux PC on the same network, and authenticate with their password*
 
 `sudo shutdown -h now` # *And authenticate with the password for the sudo user*
+
+
+## Useful learning resources found on the path to solutioning
+
+Refer [this for the command to convert videos one at a time](https://stackoverflow.com/questions/58742765/convert-videos-from-264-to-265-hevc-with-ffmpeg)
+
+Refer [this to find all MP4 files within subdirectory to compress using ffmpeg](https://stackoverflow.com/questions/56717674/code-must-find-all-mp4-files-within-subdirectory-to-compress-using-ffmpeg)
+
+Refer [this to do a batch conversion but in the reverse direction](https://askubuntu.com/questions/707397/batch-convert-h-265-mkv-to-h-264-with-ffmpeg-to-make-files-compatible-for-re-enc). This covers `.ts` file extensions
 
 
