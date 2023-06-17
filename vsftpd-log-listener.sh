@@ -8,7 +8,7 @@ function convert_H264_to_H265 ()
     H265_TS_Video="${1:0: -4}.ts" # Name to save the output to .ts format. It is useful to not overwrite source files.
     echo [ $(date +%s) ]: CONVERTING "$1" to "$H265_TS_Video" > "$2"  
     RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
-    ffmpeg -i "$1" -c:v libx265 -vtag hvc1 "$H265_TS_Video" # run the ffmpeg conversion command here
+    ffmpeg -i  "$1" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
        echo [ $(date +%s) ]: SUCCESSFULLY converted "$1" > "$2"
        echo [ $(date +%s) ]: RENAMING "$H265_TS_Video" to  "${H265_TS_Video%.*}.mpg"  > "$2" 
@@ -51,3 +51,4 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read line; do
         fi
     fi
 done
+exit 1
