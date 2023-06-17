@@ -5,46 +5,49 @@
 
 function convert_H264_to_H265 () 
 {
-    H265_TS_Video="${1:0: -4}.ts" # Saving the output to .ts format, is useful to not overwrite source files.
-    echo Converting "$1" to "$H265_TS_Video"     # run your command here
+    H265_TS_Video="${1:0: -4}.ts" # Name to save the output to .ts format. It is useful to not overwrite source files.
+    echo [ $(date +%s) ]: CONVERTING "$1" to "$H265_TS_Video" > "$2"  
     RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
-    ffmpeg -i "$1" -c:v libx265 -vtag hvc1 "$H265_TS_Video"
+    ffmpeg -i "$1" -c:v libx265 -vtag hvc1 "$H265_TS_Video" # run the ffmpeg conversion command here
     if [ $RESULT -eq 0 ]; then
-       echo CONVERTED
-       echo Renaming "$H265_TS_Video" to  "${H265_TS_Video%.*}.mpg" # Rename the ts file as mpg file
-       mv "$H265_TS_Video" "${H265_TS_Video%.*}.mpg" # Converts the file extension to MPG in the same directory. This can be set up to send it to any directory.
+       echo [ $(date +%s) ]: SUCCESSFULLY converted "$1" > "$2"
+       echo [ $(date +%s) ]: RENAMING "$H265_TS_Video" to  "${H265_TS_Video%.*}.mpg"  > "$2" 
+       mv "$H265_TS_Video" "${H265_TS_Video%.*}.mpg" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
        if [ $RESULT -eq 0 ]; then
-           echo RENAMED TS to MPG. Deleting H.264
+           echo [ $(date +%s) ]: RENAMED "$H265_TS_Video" to MPG file "${H265_TS_Video%.*}.mpg" > "$2"
+           echo [ $(date +%s) ]: DELETING H.264 file "$1" > "$2" 
            rm "$1"
        else
-           echo FAILED to rename
+           echo [ $(date +%s) ]: FAILED to RENAME "$H265_TS_Video" to MPG file "${H265_TS_Video%.*}.mpg" > "$2"
        fi
     else
-       echo FAILED to convert
+       echo [ $(date +%s) ]: FAILED to convert "$1" > "$2"
     fi
 }
 
 #This listener filters out successful uploads and then converts MP4 files from H.264 video codec to H.265 video codec and saves the latter as .MPG
-#It (strives to) runs the conversion activity as a separate process
+#It runs the conversion activity as a separate process as in https://bash.cyberciti.biz/guide/Putting_functions_in_background so that it does not hold up the tail watch for other uploaded files
+
+conversion_log_file_path="vsftpd_H264_to_H265_conversion.log"
 
 tail -f -s 5 -n 1 /var/log/vsftpd.log | while read line; do
     if echo "$line" | grep -q 'OK UPLOAD:'; then
         username=$(echo "$line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/')
-        echo user name is "$username"
+        echo [ $(date +%s) ]: USERNAME is "$username" > "$2"
         user_home=$(getent passwd "$username" | cut -d: -f6) # from https://superuser.com/questions/484277/get-home-directory-by-username
-        echo user home is "$user_home"
+        echo [ $(date +%s) ]: USER HOME is "$user_home"  > "$2"
 
         filename=$(echo "$line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') #https://www.baeldung.com/linux/process-a-bash-variable-with-sed
-        echo tail line file name is "$filename"
+        echo  [ $(date +%s) ]: FILE SUCCESSFULLY UPLOADED is "$filename" > "$2"
         full_file_path="$user_home""$filename"
 
         if [[ "$filename" == *mp4 ]]; then
             
-	    echo An mp4 file is uploaded at "$full_file_path"
-            #https://bash.cyberciti.biz/guide/Putting_functions_in_background
-            convert_H264_to_H265 "$full_file_path" & # Run the conversion as a separate process so that the conversion itself does not hold up the tail watch for other mp4 files getting uploaded
+	    echo  [ $(date +%s) ]: FULL PATH OF UPLOADED FILE is "$full_file_path" > "$2"
+            
+            convert_H264_to_H265 "$full_file_path" "$conversion_log_file_path" & # Run the conversion as a separate process 
 	else
-	    echo "$full_file_path" is not an mp4 file
+	    echo [ $(date +%s) ]: NOT AN MP4 FILE AT "$full_file_path" > "$2"
         fi
     fi
 done
