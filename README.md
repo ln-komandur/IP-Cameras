@@ -16,20 +16,14 @@
 3.   Filezilla
 4.   Reolink [RLC-510WA firmware version 1.0.280 (1387_22100633)](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak)
 
-
-## References
-
-1.   https://www.programbr.com/ubuntu/how-to-install-ftp-server-vsftpd-on-ubuntu/
-2.   https://unix.stackexchange.com/questions/654625/setting-up-vsftp
-3.   https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/ - has the link to the correct firmware version to support **FTPs**
-4.   https://docs.openeuler.org/en/docs/20.09/docs/Administration/configuring-the-ftp-server.html - Explains the parameters to configure vsftpd
-
 ## On ubuntu desktop
 
 ### BIOS
 Use relevant settings to automatically power on after a power failure
 
 ### Install vsftpd
+
+Refer [How to install FTP server (VSFTPD) on Ubuntu](https://www.programbr.com/ubuntu/how-to-install-ftp-server-vsftpd-on-ubuntu/)
 
 `sudo apt install nala` # *Use nala to install other software*
 
@@ -81,7 +75,8 @@ Use relevant settings to automatically power on after a power failure
 ### Configure vsftpd
 `sudo nano /etc/vsftpd.conf` # *Open the conf file*
 
-Edit as needed for the following fields and values
+Edit as needed for the following fields and values. Refer [Setting up vsftp](https://unix.stackexchange.com/questions/654625/setting-up-vsftp) , [Configuring the FTP Server](https://docs.openeuler.org/en/docs/20.09/docs/Administration/configuring-the-ftp-server.html)
+
 ```
 anonymous_enable=NO
 local_enable=YES
@@ -98,7 +93,6 @@ ssl_enable=YES
 
 userlist_enable=YES
 userlist_file=/etc/vsftpd.userlist
-userlist_deny=NO
 userlist_deny=NO
 ```
 
@@ -185,7 +179,8 @@ This is to save space on the internal drive
 
 ## On each IP Camera (RLC-510WA)
 
-1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) as mentioned in [this forum](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) . ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail
+1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) as mentioned in [this forum](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) . ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail . Refer [Discussion about correct Reolink firmware version to support **FTPs**](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) 
+
 
 ### Connect to wifi
 1.  Provide wifi credentials of the 5GHz band SSID
