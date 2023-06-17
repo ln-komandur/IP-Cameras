@@ -1,6 +1,8 @@
 # IP-Cameras
 ## Introduction / Purpose
-Leverage the **FTPs** capability offered by a few Security IP cameras, and upload motion video clips and photos to a local linux ftp server (that has TLS enabled). Physically isolate the set-up from the internet unless otherwise desired.
+1.   Leverage the **FTPs** capability offered by a few Security IP cameras, and upload motion video clips and photos to a local linux ftp server that has TLS enabled.
+2.   Physically isolate the set-up from the internet unless otherwise desired.
+3.   Save space on the ftp server by converting H.264 codec videos to H.265 codec as soon as they are uploaded. 
 
 ## Hardware
 1.   Reolink - RLC-510WA
