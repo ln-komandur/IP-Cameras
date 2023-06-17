@@ -145,7 +145,7 @@ Download the [vsftpd-log-listener.sh](vsftpd-log-listener.sh), that watches the 
 
 **Run the listener as a service**
 
-Refer [How to Run Shell Script as Systemd in Linux](https://tecadmin.net/run-shell-script-as-systemd-service/)
+Refer [How to Run Shell Script as Systemd in Linux](https://tecadmin.net/run-shell-script-as-systemd-service/) and [Redirect systemd service logs to file](https://unix.stackexchange.com/questions/321709/redirect-systemd-service-logs-to-file)
 
 `sudo nano /lib/systemd/system/vsftpd-log-listener.service` # *Create a service for the listener*
 
