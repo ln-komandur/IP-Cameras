@@ -30,7 +30,7 @@ function convert_H264_to_H265 ()
 #It runs the conversion activity as a separate process as in https://bash.cyberciti.biz/guide/Putting_functions_in_background so that it does not hold up the tail watch for other uploaded files
 
 timestamp="$(date +"%F %T")"
-ext_dr_mnt_pt="/dev/sda6" # Mount point of external drive
+ext_dr_mnt_pt=$1 # Mount point of external drive
 
 ext_dr_mnt_stat=false
 
