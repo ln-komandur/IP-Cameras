@@ -139,7 +139,13 @@ Download the [vsftpd-log-listener.sh](vsftpd-log-listener.sh), that watches the 
 
 `sudo chown -R ipcamera:ipcamera /home/cameras/my-vsftpd` # *Change the ownership and group of the directory and all contents under it to the ipcamera user and group*
 
-**Run the listener as a service**
+### Use an external drive to store H.265 video clips
+This saves space on the internal drive by keeping only photos on it. It also helps redundancy in case the external drive is lost / stolen. Recoded H.265 video clips are maintained only on the external drive if the recoding is successful. i.e. if external drive is not connected / mounted, then the H.265 recoded videos will be stored on the internal drive.
+
+1.  Mount the external drive automatically with appropriate entries in `/etc/fstab`. Provide the mount point as an ENVIRONMENT variable in the service declaration of the vsftpd-log-listener
+2.  Ensure that `sudo` (not `ipcamera` user, as it is `sudo` who runs the service) has all permissions to write to the external drive mount point. This is usually so, but just ensure that it is in place.
+
+### Run the listener as a service
 
 Refer [How to Run Shell Script as Systemd in Linux](https://tecadmin.net/run-shell-script-as-systemd-service/) and [Redirect systemd service logs to file](https://unix.stackexchange.com/questions/321709/redirect-systemd-service-logs-to-file)
 
@@ -168,15 +174,6 @@ WantedBy=default.target
 `sudo systemctl start vsftpd-log-listener.service`# *Start the service now*
 
 `sudo systemctl status vsftpd-log-listener.service` # *Verify the script is up and running as a systemd service.*
-
-### Use an external drive to store H.265 video clips
-This is to save space on the internal drive
-1.  Keep photos on local drive as well as external drive i.e. helps in case the external drive is lost / stolen
-2.  Keep only H.265 video clips on external drive
-3.  Do not keep any video clips on local drive after the recoding is successful i.e. keep only if external drive is not connected
-4.  Ensure that the external drive is automatically mounted upon power on with mount point entries in `/etc/fstab`
-5.  Ensure that the `sudo` user (not `ipcamera` user) has all permissions to write to the external drive. This is usually so, but just ensure that it is happening.  See ***Questions under recoding each video clip***
-
 
 ## On each IP Camera (RLC-510WA)
 
