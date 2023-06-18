@@ -129,7 +129,7 @@ This simulates a power failure situation
 
 This halves the space needed to store videos. 
 
-Download the [vsftpd-log-listener.sh](vsftpd-log-listener.sh), that watches the vsftpd log for successful uploads, and then converts .mp4 files with H.264 codecs to .mpg files with H.265 codecs. It runs the conversion of each .mp4 files as a separate process. Each H.265 video will be stored in the same directory as a .mpg file. The original H.264 file (as .mp4) will be deleted after successful conversion.
+Download the [vsftpd-log-listener.sh](vsftpd-log-listener.sh), that watches the vsftpd log for successful uploads, and then converts .mp4 files with H.264 codecs to .mpg files with H.265 codecs. It runs the conversion of each .mp4 files as a separate process. Each H.265 video will be stored in an external mount point under a directory structure mirrored with the source, and as a .mpg file. The external drive's mount point is passed as a argument in the service definition, using the [Environment directive](https://www.baeldung.com/linux/systemd-multiple-parameters). The original H.264 file (as .mp4) will be deleted after successful conversion.
 
 `sudo chmod +x vsftpd-log-listener.sh` # *Permit executing the script*
 
