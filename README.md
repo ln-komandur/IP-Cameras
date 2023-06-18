@@ -153,8 +153,8 @@ Description=Watches vsftp log for successful uploads, and converts .mp4 files wi
 [Service]
 ExecStart=/home/ipcamera/my-vsftpd/vsftpd-log-listener.sh
 Restart=always
-StandardOutput=append:/home/ipcamera/my-vsftpd/H464_H265_Conversion_service.log
-StandardError=append:/home/ipcamera/my-vsftpd/H464_H265_Conversion_service_error.log
+StandardOutput=append:/home/ipcamera/my-vsftpd/H264_to_H265_Codec_conversion_service.log
+StandardError=append:/home/ipcamera/my-vsftpd/H264_to_H265_Codec_conversion_service_error.log
 
 [Install]
 WantedBy=default.target
