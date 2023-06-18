@@ -157,8 +157,8 @@ Copy the following lines and save the file
 Description=Watches vsftp log for successful uploads, and converts .mp4 files with H.264 codecs to .mpg files with H.265 codecs
 
 [Service]
-Environment = "EXT_DR_MNT_PT=/dev/sda6"
-ExecStart=/home/cameras/my-vsftpd/vsftpd-log-listener.sh $EXT_DR_MNT_PT
+Environment = "EXT_DR_MNT_PT=/media/camera_clips" "BASE_FOLDER=/H_265_Clips"
+ExecStart=/home/cameras/my-vsftpd/vsftpd-log-listener.sh $EXT_DR_MNT_PT $BASE_FOLDER
 Restart=always
 StandardOutput=append:/home/ipcamera/my-vsftpd/H264_to_H265_Codec_conversion_service.log
 StandardError=append:/home/ipcamera/my-vsftpd/H264_to_H265_Codec_conversion_service_error.log
