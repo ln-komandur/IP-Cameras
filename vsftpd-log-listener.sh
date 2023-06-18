@@ -5,37 +5,40 @@
 
 function convert_H264_to_H265 () 
 {
-    H265_TS_Video="${3:0: -4}.ts" # Name to save the output to .ts format. It is useful to not overwrite source files.
-    rm "$2""$H265_TS_Video" || true # IF THERE IS A .ts file from an aborted conversion, delete it first. Refer https://superuser.com/questions/76061/how-do-i-make-rm-not-give-an-error-if-a-file-doesnt-exist
-    echo [ "$timestamp" ]: CONVERTING "$1""$3" to "$2""$H265_TS_Video" 
+    H265_TS_Video="${2:0: -4}.ts" # .ts file name to save the output to .ts format at the destination path. It avoids overwriting source files.
+    rm "$H265_TS_Video" || true # IF THERE IS A .ts file from an aborted conversion, delete it first. Refer https://superuser.com/questions/76061/how-do-i-make-rm-not-give-an-error-if-a-file-doesnt-exist
+    echo [ "$timestamp" ]: CONVERTING "$1" to "$H265_TS_Video" 
+    
     RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
-    ffmpeg -i  "$1""$3" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$2""$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
+    ffmpeg -i  "$1" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
-       echo [ "$timestamp" ]: SUCCESSFULLY converted "$1""$3"
-       echo [ "$timestamp" ]: RENAMING "$2""$H265_TS_Video" to  "$2""${H265_TS_Video%.*}.mpg" 
-       mv "$2""$H265_TS_Video" "$2""${H265_TS_Video%.*}.mpg" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
+       H265_MPG_Video="${H265_TS_Video%.*}.mpg" 
+       echo [ "$timestamp" ]: SUCCESSFULLY converted "$1"
+       echo [ "$timestamp" ]: RENAMING "$H265_TS_Video" to  "$H265_MPG_Video" 
+       mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
        if [ $RESULT -eq 0 ]; then
-           echo [ "$timestamp" ]: RENAMED "$2""$H265_TS_Video" to MPG file "$2""${H265_TS_Video%.*}.mpg"
-           echo [ "$timestamp" ]: DELETING H.264 file "$1""$3"
-           rm "$1""$3"
+           echo [ "$timestamp" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
+           echo [ "$timestamp" ]: DELETING H.264 file "$1"
+           rm "$1"
        else
-           echo [ "$timestamp" ]: FAILED to RENAME "$2""$H265_TS_Video" to MPG file "$2""${H265_TS_Video%.*}.mpg"
+           echo [ "$timestamp" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
        fi
     else
-       echo [ "$timestamp" ]: FAILED to convert "$1""$3"
+       echo [ "$timestamp" ]: FAILED to convert "$1"
     fi
 }
 
-#This listener filters out successful uploads and then converts MP4 files from H.264 video codec to H.265 video codec and saves the latter as .MPG
-#It runs the conversion activity as a separate process as in https://bash.cyberciti.biz/guide/Putting_functions_in_background so that it does not hold up the tail watch for other uploaded files
+# This listener filters out successful uploads and then converts MP4 files from H.264 video codec to H.265 video codec and saves the latter as .MPG
+# It runs the conversion activity as a separate process as in https://bash.cyberciti.biz/guide/Putting_functions_in_background so that it does not hold up the tail watch for other uploaded files
 
 timestamp="$(date +"%F %T")"
 ext_dr_mnt_pt=$1 # Mount point of external drive
+base_folder=$2 # Base folder
 
-ext_dr_mnt_stat=false
+ext_dr_mnt_status=false
 
-if mount "$ext_dr_mnt_pt"; then # Try to mount the external drive once and know the status
-    ext_dr_mnt_stat=true
+if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already mounted. Mounting it is out of scope of this shell script
+    ext_dr_mnt_status=true
 fi 
 
 tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
@@ -47,23 +50,24 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
 	user_home=$(getent passwd "$username" | cut -d: -f6) # from https://superuser.com/questions/484277/get-home-directory-by-username
 	echo [ "$timestamp" ]: USER HOME is "$user_home"
     
-    	file_rel_path=$(echo "$log_line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') # Take everything within quotes. https://www.baeldung.com/linux/process-a-bash-variable-with-sed
+    	file_at_rel_path=$(echo "$log_line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') # Take everything within quotes. https://www.baeldung.com/linux/process-a-bash-variable-with-sed
     	  	
-   	rel_path=$(echo "$file_rel_path" | sed -r 's/(^\/.+\/)*(.+)\.(.+)$/\1/') # Take everything between the first \/ and the last \/ character. # https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
-        echo  [ "$timestamp" ]: SUCCESSFUL UPLOAD at "$user_home""$file_rel_path"
+   	rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character. # https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
+        echo [ "$timestamp" ]: SUCCESSFUL UPLOAD at "$user_home""$file_at_rel_path"
+      
+        if [[ "$file_at_rel_path" == *mp4 ]]; then # If this is an mp4 file
+ 
+ 	    destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
 
-        if ! $ext_dr_mnt_stat; then # If the drive is not mounted, then use the user home
-	    ext_dr_mnt_pt="$user_home"
+	    if $ext_dr_mnt_status && [[ $user_home != $ext_dr_mnt_pt ]]; then # Change destination_path if the external mount point is mounted, and is different from the mount point of the users home
+                destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
+		echo [ "$timestamp" ]: CREATE DIRECTORY  mkdir -p "$destination_path"
+		mkdir -p "$destination_path"
+	    fi
+ 
+            convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_path""$file_at_rel_path" & # Run the conversion as a separate process 
 	else
-	    echo [ "$timestamp" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$rel_path"
-	    mkdir -p "$ext_dr_mnt_pt""$rel_path"
-        fi
-        
-        if [[ "$file_rel_path" == *mp4 ]]; then # If this is an mp4 file
-            
-            convert_H264_to_H265 "$user_home" "$ext_dr_mnt_pt" "$file_rel_path" & # Run the conversion as a separate process 
-	else
-	    echo [ "$timestamp" ]: NOT AN MP4 FILE AT "$user_home""$file_rel_path"
+	    echo [ "$timestamp" ]: NOT AN MP4 FILE AT "$user_home""$file_at_rel_path"
         fi
     fi
 done
