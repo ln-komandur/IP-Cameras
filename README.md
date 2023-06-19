@@ -69,7 +69,7 @@ Refer [How to install FTP server (VSFTPD) on Ubuntu](https://www.programbr.com/u
 `cat /etc/vsftpd.userlist` # *Check if the user is added to the list of users who can use vsftpd*
 
 ### Generate certificate
-`sudo openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem` # *generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 7300 days*
+`sudo openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem` # *Generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 7300 days*
 
 
 ### Configure vsftpd
@@ -103,7 +103,7 @@ userlist_deny=NO
 
 **Not sure**
 
-`listen = YES` # Refer [this link](https://www.ibiblio.org/pub/Linux/docs/linux-doc-project/linuxfocus/English/Archives/lf-2004_07-0341.pdf) on using standalone mode or not
+`listen = YES` # *Refer [using standalone mode or not](https://www.ibiblio.org/pub/Linux/docs/linux-doc-project/linuxfocus/English/Archives/lf-2004_07-0341.pdf)*
 
 ### Restart vsftpd
 `sudo systemctl restart vsftpd` # *Restart vsftpd for changes to take effect*
@@ -112,7 +112,7 @@ userlist_deny=NO
 ### Testing with filezilla
 1.  Test using `hostname` to connect
 2.  Test using intranet ip address
-3.  Test using 'ipcamera' user credentials to see if connections are successful
+3.  Test using `ipcamera` user credentials to see if connections are successful
 4.  Test using other user credentials to see if connections are unsuccessful
 5.  Test if TLS is working (from the certificate shown as well as login messages)
 6.  Test if directories are resrticted. i.e. cannot traverse above home directory
@@ -135,15 +135,15 @@ Download the [vsftpd-log-listener.sh](vsftpd-log-listener.sh), that watches the 
 
 `sudo mkdir /home/ipcamera/my-vsftpd` # *Create a directory to store the users shell scripts*
 
-`sudo mv vsftpd-log-listener.sh /home/cameras/my-vsftpd/` # *Move the listener to the user's directory where shell scripts would be stored*
+`sudo mv vsftpd-log-listener.sh /home/ipcamera/my-vsftpd/` # *Move the listener to the user's directory where shell scripts would be stored*
 
-`sudo chown -R ipcamera:ipcamera /home/cameras/my-vsftpd` # *Change the ownership and group of the directory and all contents under it to the ipcamera user and group*
+`sudo chown -R ipcamera:ipcamera /home/ipcamera/my-vsftpd` # *Change the ownership and group of the directory and all contents under it to the ipcamera user and group*
 
 ### Use an external drive to store H.265 video clips
 This saves space on the internal drive by keeping only photos on it. It also helps redundancy in case the external drive is lost / stolen. Recoded H.265 video clips are maintained only on the external drive if the recoding is successful. i.e. if external drive is not connected / mounted, then the H.265 recoded videos will be stored on the internal drive.
 
 1.  Mount the external drive automatically with appropriate entries in `/etc/fstab`. Provide the mount point as an ENVIRONMENT variable in the service declaration of the vsftpd-log-listener
-2.  Ensure that `sudo` (not `ipcamera` user, as it is `sudo` who runs the service) has all permissions to write to the external drive mount point. This is usually so, but just ensure that it is in place.
+2.  Ensure that `sudo` (not `ipcamera` user, as it is `sudo` who runs the service) has all permissions to write to the external drive mount point. Ensure [the ownwership, groups, and setgid](https://github.com/ln-komandur/linux-utils/blob/master/common-mountpoints.md) are set correctly.
 
 ### Run the listener as a service
 
@@ -158,7 +158,7 @@ Description=Watches vsftp log for successful uploads, and converts .mp4 files wi
 
 [Service]
 Environment = "EXT_DR_MNT_PT=/media/camera_clips" "BASE_FOLDER=/H_265_Clips"
-ExecStart=/home/cameras/my-vsftpd/vsftpd-log-listener.sh $EXT_DR_MNT_PT $BASE_FOLDER
+ExecStart=/home/ipcamera/my-vsftpd/vsftpd-log-listener.sh $EXT_DR_MNT_PT $BASE_FOLDER
 Restart=always
 StandardOutput=append:/home/ipcamera/my-vsftpd/H264_to_H265_Codec_conversion_service.log
 StandardError=append:/home/ipcamera/my-vsftpd/H264_to_H265_Codec_conversion_service_error.log
@@ -171,7 +171,7 @@ WantedBy=default.target
 
 `sudo systemctl enable vsftpd-log-listener.service` # *Enable the service to start on system boot*
 
-`sudo systemctl start vsftpd-log-listener.service`# *Start the service now*
+`sudo systemctl start vsftpd-log-listener.service` # *Start the service now*
 
 `sudo systemctl status vsftpd-log-listener.service` # *Verify the script is up and running as a systemd service.*
 
@@ -183,14 +183,14 @@ WantedBy=default.target
 
 ### Connect to wifi
 1.  Provide wifi credentials of the 5GHz band SSID
-2.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for 'ipcameras' user. 
+2.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for `ipcamera` user. 
     1.  Using `hostname` 
         1.  makes it flexible to connect the linux box to the router either via wifi or RJ45. 
         2.  helps the cameras find and connect to the desktop ftp box, even if the router allocates a different ip address to it
 
 ### Provide FTPs details
 1.  Enable the ftps soft switch
-2.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips`
+2.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips` or `/Videos`
 3.  Save ftp details and test them for a successful connection
 
 ### Configure recording
@@ -236,5 +236,3 @@ Refer [this for the command to convert videos one at a time](https://stackoverfl
 Refer [this to find all MP4 files within subdirectory to compress using ffmpeg](https://stackoverflow.com/questions/56717674/code-must-find-all-mp4-files-within-subdirectory-to-compress-using-ffmpeg)
 
 Refer [this to do a batch conversion but in the reverse direction](https://askubuntu.com/questions/707397/batch-convert-h-265-mkv-to-h-264-with-ffmpeg-to-make-files-compatible-for-re-enc). This covers `.ts` file extensions
-
-
