@@ -34,11 +34,7 @@ timestamp="$(date +"%F %T")"
 ext_dr_mnt_pt=$1 # Mount point of external drive
 base_folder=$2 # Base folder
 
-ext_dr_mnt_status=false
 
-if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already mounted. Mounting it is out of scope of this shell script
-    ext_dr_mnt_status=true
-fi 
 
 echo [ "$timestamp" ]: BEGIN LOGGING # Date format is F - Full date, T - full time
 
@@ -52,8 +48,14 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
         echo [ "$timestamp" ]: SUCCESSFUL UPLOAD at "$user_home""$file_at_rel_path" # Log the full source path
       
         if [[ "$file_at_rel_path" == *.mp4 ]]; then # If this is an mp4 file
+
             destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
             destination_file="$user_home""$file_at_rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
+
+            ext_dr_mnt_status=false
+            if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already / still mounted. Mounting it is out of scope of this shell script
+                ext_dr_mnt_status=true
+            fi 
 
             if $ext_dr_mnt_status && [[ $user_home != $ext_dr_mnt_pt ]]; then # Change destination_path if the external mount point is mounted, and is different from the mount point of the users home
                 destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
