@@ -8,7 +8,6 @@ function convert_H264_to_H265 ()
     H265_TS_Video="${2:0: -4}.ts" # .ts file name to save the output to .ts format at the destination path. It avoids overwriting source files.
     rm "$H265_TS_Video" || true # IF THERE IS A .ts file from an aborted conversion, delete it first. Refer https://superuser.com/questions/76061/how-do-i-make-rm-not-give-an-error-if-a-file-doesnt-exist
     echo [ "$timestamp" ]: CONVERTING "$1" to "$H265_TS_Video" 
-    
     RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
     ffmpeg -i  "$1" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
@@ -41,33 +40,31 @@ if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already
     ext_dr_mnt_status=true
 fi 
 
-tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
-    if echo "$log_line" | grep -q 'OK UPLOAD:'; then
-    
-    	username=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/')
-	echo [ "$timestamp" ]: BEGIN LOGGING # Date format is F - Full date, T - full time
-	echo [ "$timestamp" ]: USERNAME is "$username"
-	user_home=$(getent passwd "$username" | cut -d: -f6) # from https://superuser.com/questions/484277/get-home-directory-by-username
-	echo [ "$timestamp" ]: USER HOME is "$user_home"
-    
-    	file_at_rel_path=$(echo "$log_line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') # Take everything within quotes. https://www.baeldung.com/linux/process-a-bash-variable-with-sed
-    	  	
-   	rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character. # https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
-        echo [ "$timestamp" ]: SUCCESSFUL UPLOAD at "$user_home""$file_at_rel_path"
-      
-        if [[ "$file_at_rel_path" == *mp4 ]]; then # If this is an mp4 file
- 
- 	    destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
+echo [ "$timestamp" ]: BEGIN LOGGING # Date format is F - Full date, T - full time
 
-	    if $ext_dr_mnt_status && [[ $user_home != $ext_dr_mnt_pt ]]; then # Change destination_path if the external mount point is mounted, and is different from the mount point of the users home
+tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
+    if echo "$log_line" | grep -q 'OK UPLOAD:'; then # If there is a successful upload
+        username=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/') # Find out which user uploaded
+        user_home=$(getent passwd "$username" | cut -d: -f6) # from https://superuser.com/questions/484277/get-home-directory-by-username
+        echo [ "$timestamp" ]: USERNAME is "$username" : USER HOME is "$user_home"
+        file_at_rel_path=$(echo "$log_line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') # Take everything within quotes. https://www.baeldung.com/linux/process-a-bash-variable-with-sed                     
+        rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character. # https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
+        echo [ "$timestamp" ]: SUCCESSFUL UPLOAD at "$user_home""$file_at_rel_path" # Log the full source path
+      
+        if [[ "$file_at_rel_path" == *.mp4 ]]; then # If this is an mp4 file
+            destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
+            destination_file="$user_home""$file_at_rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
+
+            if $ext_dr_mnt_status && [[ $user_home != $ext_dr_mnt_pt ]]; then # Change destination_path if the external mount point is mounted, and is different from the mount point of the users home
                 destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
-		echo [ "$timestamp" ]: CREATE DIRECTORY  mkdir -p "$destination_path"
-		mkdir -p "$destination_path"
-	    fi
+                destination_file="$ext_dr_mnt_pt""$base_folder""$file_at_rel_path" 
+                echo [ "$timestamp" ]: CREATE DIRECTORY  mkdir -p "$destination_path"
+                mkdir -p "$destination_path"
+            fi
  
-            convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_path""$file_at_rel_path" & # Run the conversion as a separate process 
-	else
-	    echo [ "$timestamp" ]: NOT AN MP4 FILE AT "$user_home""$file_at_rel_path"
+            convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_file" & # Run the conversion as a separate process 
+        else
+            echo [ "$timestamp" ]: NOT AN MP4 FILE AT "$user_home""$file_at_rel_path"
         fi
     fi
 done
