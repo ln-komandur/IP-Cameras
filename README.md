@@ -222,6 +222,22 @@ WantedBy=default.target
     1. Saves wifi bandwidth for the cameras
     2. Ensure that the router does not append any characters to the `hostname` when connecting via RJ45, and remove them
 
+# Appendix
+
+## Viewing photos and videos (H.265 and H.264) in the ftp box from other devices on the network
+
+1.  [Install and Configure Samba Server on Ubuntu 22.04/20.04 for File Sharing](https://www.linuxbabe.com/ubuntu/install-samba-server-file-share) . Additional reference [How to Install Samba in Ubuntu](https://phoenixnap.com/kb/ubuntu-samba)
+2.  Provide proper permissions for users
+    1.    `ipcamera` user can delete files. This user is already the owner of the mount points where photos and videos (H.265 and H.264) are stored in the ftp box
+    2.    Other users can only browse, view and download files.
+    3.    Ensure that other users are in the `ipcamera` group (need to check if this is the opposite direction). Ensure that `setgid` bit is set on the mount points  
+
+
+## Purge old files on the ftp box
+-    Write a shell script that takes the mount point name(s), number of days of free space to clear for each of them, and file types to delete as arguments.
+     - This script will find the oldest and newest files in **each** mout point and the space they consume. It will calculate the average daily space taken. If the free space on the mount point (drive) is less than the 'number of days of free space to clear', then it will delete files of the oldest day per the 'file types to delete' in the argument in **each** mount point. It will repeat 'calculate the average daily space taken, check and delete' until there is required free space is available for the number of days in **each** mount point. The average is calculated as a moving average.
+-    Run this shell script as a nighly process. Service? that checks the time of the day?
+     
 ## Shutdown the ftp headless box remotely from within the same network
 
 Refer [this](https://superuser.com/questions/703232/how-to-shut-down-a-networked-linux-pc)
