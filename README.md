@@ -5,10 +5,10 @@
 3.   Save space on the ftp server by converting H.264 codec videos to H.265 codec as soon as they are uploaded. 
 
 ## Hardware
-1.   Reolink - RLC-510WA
+1.   Reolink - [RLC-510WA](https://reolink.com/us/product/rlc-510wa/)
 2.   Desktop to run Ubuntu 22.04, with reasonable storage to store video clips and photos from multiple IP cameras
 3.   Dualband wifi router with RJ45 and reasonable bandwidth to use the less congested 5GHz band 
-4.   Display dummy (HDMI / DisplayPort) to use the linux box headless
+4.   Display dummy (HDMI / DisplayPort) to use the linux box headless. This is an optional accessory for some PCs.
 
 ## Software
 1.   Ubuntu 22.04 desktop
@@ -42,7 +42,7 @@ Refer [How to install FTP server (VSFTPD) on Ubuntu](https://www.programbr.com/u
 
 ### Configure ufw
 
-`sudo ufw status` #*Check the firewall's status. Could be inactive*
+`sudo ufw status` # *Check the firewall's status. Could be inactive*
 
 `sudo ufw allow 20/tcp` # *Open port 20 (FTP data port)*
 
@@ -108,28 +108,30 @@ userlist_deny=NO
 ### Restart vsftpd
 `sudo systemctl restart vsftpd` # *Restart vsftpd for changes to take effect*
 
+## Test vsftpd
 
-### Testing with filezilla
-1.  Test using `hostname` to connect
-2.  Test using intranet ip address
-3.  Test using `ipcamera` user credentials to see if connections are successful
-4.  Test using other user credentials to see if connections are unsuccessful
-5.  Test if TLS is working (from the certificate shown as well as login messages)
-6.  Test if directories are resrticted. i.e. cannot traverse above home directory
-7.  Test if downloading from ftp location to local location is working
+### Test using filezilla
+1.  Test the ability to connect to the ftp server using
+    1.   `hostname`
+    2.   intranet ip address
+2.  Test user credentials to log into the ftp server using
+    1.   `ipcamera` user credentials for successful attempts
+    2.   credentials of other users on the ftp box for unsuccessful attempts. i.e. vsftpd should block them
+3.  Test if TLS is working from the certificate shown upon login as well as login messages)
+4.  Test if directories are restricted. i.e. cannot traverse above home directory
+5.  Test if downloading from ftp location to local location is working
+6.  Test if upload / create new file are working on the ftp location
 
-### Testing with Headless operation mode
-Plug in the display dummy (in the HDMI or DisplayPort) and test ftp from a client on a different machine
+### Test headless operation
+Boot the ftp box without a display / display dummy, keyboard and mouse connected to it. Connect to the ftp server from an ftp client on a different device. Some PCs may need a display dummy. 
 
 
-### Testing ftp before any user logs into the desktop
-This simulates a power failure situation
+### Test ftp before any user ever logs into the ftp box
+This simulates a power failure situation when vsftpd should start on its own. A headless operation test may also be good to confirm this. 
 
 ### Recode each video clip from H.264 codec to H.265 codec
 
-This halves the space needed to store videos. 
-
-Download the [vsftpd-log-listener.sh](vsftpd-log-listener.sh), that watches the vsftpd log for successful uploads, and then converts .mp4 files with H.264 codecs to .mpg files with H.265 codecs. It runs the conversion of each .mp4 files as a separate process. Each H.265 video will be stored in an external mount point under a directory structure mirrored with the source, and as a .mpg file. The external drive's mount point is passed as a argument in the service definition, using the [Environment directive](https://www.baeldung.com/linux/systemd-multiple-parameters). The original H.264 file (as .mp4) will be deleted after successful conversion.
+This halves the space needed to store videos. Download the [vsftpd-log-listener.sh](vsftpd-log-listener.sh), that watches the vsftpd log for successful uploads, and then converts .mp4 files with H.264 codecs to .mpg files with H.265 codecs. It runs the conversion of each .mp4 files as a separate process. Each H.265 video will be stored in an external mount point under a directory structure that mirrors the source, and as a .mpg file. The external drive's mount point is passed as a argument in the service definition, using the [Environment directive](https://www.baeldung.com/linux/systemd-multiple-parameters). The original H.264 file (as .mp4) will be deleted after successful conversion.
 
 `sudo chmod +x vsftpd-log-listener.sh` # *Permit executing the script*
 
@@ -145,7 +147,7 @@ This saves space on the internal drive by keeping only photos on it. It also hel
 1.  Mount the external drive automatically with appropriate entries in `/etc/fstab`. Provide the mount point as an ENVIRONMENT variable in the service declaration of the vsftpd-log-listener
 2.  Ensure that `sudo` (not `ipcamera` user, as it is `sudo` who runs the service) has all permissions to write to the external drive mount point. Ensure [the ownwership, groups, and setgid](https://github.com/ln-komandur/linux-utils/blob/master/common-mountpoints.md) are set correctly.
 
-### Run the listener as a service
+### Run the vsftpd-log-listener as a service
 
 Refer [How to Run Shell Script as Systemd in Linux](https://tecadmin.net/run-shell-script-as-systemd-service/) and [Redirect systemd service logs to file](https://unix.stackexchange.com/questions/321709/redirect-systemd-service-logs-to-file)
 
@@ -180,13 +182,12 @@ WantedBy=default.target
 1.  Update firmware to version 1.0.280 so that the camera can use ftps (protocol) - this is available [here](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) per this [discussion about correct Reolink firmware version to support **FTPs**](https://www.reddit.com/r/reolinkcam/comments/10iv3di/question_my_rlc510wa_cannot_connect_to_filezilla/) .
 ***Note*** firmware version 1.0.276 will not support ftps protocol, and the 'test' will fail. 
 
-
 ### Connect to wifi
 1.  Provide wifi credentials of the 5GHz band SSID
 2.  Provide the (local) `hostname` of the ftp box (not local ip address), port as 21, and the credentials for `ipcamera` user. 
     1.  Using `hostname` 
         1.  makes it flexible to connect the linux box to the router either via wifi or RJ45. 
-        2.  helps the cameras find and connect to the desktop ftp box, even if the router allocates a different ip address to it
+        2.  helps the cameras find and connect to the ftp box, even if the router allocates a different ip address to it
 
 ### Provide FTPs details
 1.  Enable the ftps soft switch
@@ -204,15 +205,16 @@ WantedBy=default.target
 
 
 ## Securing the router
-1.  Avoid setting a common SSID for 2.4GHz and 5GHz so that devices can select them automatically. Devices may then pick the slower but stronger 2.4GHz band all the time instead of the less stronger but faster 5GHz band
+1.  Check the signal strength of the 5GHz band in each of the camera locations
+    1.  If it is strong enough (i.e. will not disconnect), then avoid setting a common SSID for 2.4GHz and 5GHz bands so that devices can select them automatically. Devices may then pick the slower but stronger 2.4GHz band all the time instead of the less stronger but faster 5GHz band
+    2.  If it not strong enough (i.e. possibility of disconnections), then set a common SSID for 2.4GHz and 5GHz bands so that devices can select them automatically. Devices may then pick the slower but stronger 2.4GHz band but will not disconnect even if faster 5GHz band is not in range
 2.  Hide the SSID to which IP Cameras connect
-3.  Whitelist the 
-    1.  Wifi mac address of each IP Camera
-    2.  Wifi mac address of the desktop
-    3.  Ethernet mac address of the desktop
-    4.  Mac address of any other approved device to access the cameras and the desktop (e.g. phone)
+3.  Whitelist Wi-fi for the mac address of 
+    1.  each IP Camera
+    2.  the ftp box
+    3.  any other approved device on the intranet to access the cameras and the ftp box (e.g. phone)
 4.  Scan 5GHz channels and select a less congested channel 
-5.  If the ftp desktop box needs to be connected to the internet, the ip cameras can still be restrained by setting
+5.  If the ftp box needs to be connected to the internet, the ip cameras can still be restrained by setting
     1.  appropriate *parental controls* in the router 
     2.  rules in the router firewall
     3.  Setting the gateway the same as the IP Address of the camera in the camera IP settings. Refer [this approach](https://medium.com/@ShinobiSystems/how-to-stop-a-reolink-cameras-or-others-from-sending-unauthorized-data-to-offsite-locations-47f6d1df3137) for more details
@@ -227,7 +229,6 @@ Refer [this](https://superuser.com/questions/703232/how-to-shut-down-a-networked
 `ssh <username on ftp box>@<host name of ftp box>` # *Connect to the ftp box from another linux PC on the same network, and authenticate with their password*
 
 `sudo shutdown -h now` # *And authenticate with the password for the sudo user*
-
 
 ## Useful learning resources found on the path to solutioning
 
