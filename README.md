@@ -242,9 +242,31 @@ WantedBy=default.target
 
 Refer [this](https://superuser.com/questions/703232/how-to-shut-down-a-networked-linux-pc)
 
-`ssh <username on ftp box>@<host name of ftp box>` # *Connect to the ftp box from another linux PC on the same network, and authenticate with their password*
+`ssh <sudo username on ftp box>@<host name of ftp box>` # *Connect to the ftp box from another linux PC on the same network, and authenticate with the sudo users credentials*
 
-`sudo shutdown -h now` # *And authenticate with the password for the sudo user*
+Use the following command trail which also shows typical responses
+
+**su_user_on_ftp_box@ftp_box:~$** `shutdown -h now`
+```
+User ipcamera is logged in on sshd.
+Please retry operation after closing inhibitors and logging out other users.
+Alternatively, ignore inhibitors and users with 'systemctl poweroff -i'.
+```
+**su_user_on_ftp_box@ftp_box:~$** `systemctl poweroff -i`
+```
+==== AUTHENTICATING FOR org.freedesktop.login1.set-wall-message ===
+Authentication is required to set a wall message
+Authenticating as: su_user_on_ftp_box,,, (su_user_on_ftp_box)
+Password: 
+==== AUTHENTICATION COMPLETE ===
+==== AUTHENTICATING FOR org.freedesktop.login1.power-off-multiple-sessions ===
+Authentication is required to power off the system while other users are logged in.
+Authenticating as: su_user_on_ftp_box,,, (su_user_on_ftp_box)
+Password: 
+==== AUTHENTICATION COMPLETE ===
+su_user_on_ftp_box@ftp_box:~$ Connection to ftp_box closed by remote host.
+Connection to ftp_box closed.
+```
 
 ## Useful learning resources found on the path to solutioning
 
