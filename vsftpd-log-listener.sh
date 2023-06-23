@@ -48,7 +48,8 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
         echo [ "$timestamp" ]: SUCCESSFUL UPLOAD at "$user_home""$file_at_rel_path" # Log the full source path
       
         if [[ "$file_at_rel_path" == *.mp4 ]]; then # If this is an mp4 file
-
+	    
+	    ## Get the path to the destination file - Begin
             destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
             destination_file="$user_home""$file_at_rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
 
@@ -58,12 +59,18 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
             fi 
 
             if $ext_dr_mnt_status && [[ $user_home != $ext_dr_mnt_pt ]]; then # Change destination_path if the external mount point is mounted, and is different from the mount point of the users home
-                destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
-                destination_file="$ext_dr_mnt_pt""$base_folder""$file_at_rel_path" 
-                echo [ "$timestamp" ]: CREATE DIRECTORY  mkdir -p "$destination_path"
-                mkdir -p "$destination_path"
+
+                echo [ "$timestamp" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path"
+                mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path" # Create the directory
+
+                if [ -d "$ext_dr_mnt_pt""$base_folder""$rel_path" ]; then # Check if the newly created path exists before pointing variables to it
+                    destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
+                    destination_file="$ext_dr_mnt_pt""$base_folder""$file_at_rel_path" 
+                fi
             fi
- 
+ 	    ## Get the path to the destination file - End
+
+ 	    
             convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_file" & # Run the conversion as a separate process 
         else
             echo [ "$timestamp" ]: NOT AN MP4 FILE AT "$user_home""$file_at_rel_path"
