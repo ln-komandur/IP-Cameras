@@ -226,11 +226,54 @@ WantedBy=default.target
 
 ## Viewing photos and videos (H.265 and H.264) in the ftp box from other devices on the network
 
-1.  [Install and Configure Samba Server on Ubuntu 22.04/20.04 for File Sharing](https://www.linuxbabe.com/ubuntu/install-samba-server-file-share) . Additional reference [How to Install Samba in Ubuntu](https://phoenixnap.com/kb/ubuntu-samba)
-2.  Provide proper permissions for users
-    1.    `ipcamera` user can delete files. This user is already the owner of the mount points where photos and videos (H.265 and H.264) are stored in the ftp box
-    2.    Other users can only browse, view and download files.
-    3.    Ensure that other users are in the `ipcamera` group (need to check if this is the opposite direction). Ensure that `setgid` bit is set on the mount points  
+[Install and Configure Samba Server on Ubuntu 22.04/20.04 for File Sharing](https://www.linuxbabe.com/ubuntu/install-samba-server-file-share) . Additional reference [How to Install Samba in Ubuntu](https://phoenixnap.com/kb/ubuntu-samba)
+
+`sudo nala install samba` # *Install samba*
+
+`samba -V` # *Check samba version*
+
+`systemctl status smbd` # *Check if samba service is running*
+
+`sudo nano /etc/samba/smb.conf` # *Edit Samba conf and include the following at the bottom of the file*
+
+```
+[FTP_Videos_Photos]
+
+comment = Users need to authenticate to access videos and photos on FTP server location
+path = /home/ipcamera/Videos/
+browseable = yes
+guest ok = no
+writable = yes
+valid users = @samba
+
+
+[EXT_DR_Videos]
+
+comment = Users need to authenticate to access videos on external drive
+path = /media/camera_clips/H_265_Clips/Videos/
+browseable = yes
+guest ok = no
+writable = yes
+valid users = @samba
+```
+
+`sudo smbpasswd -a ipcamera` # *Set samba password for ipcamera user*
+
+`sudo groupadd samba` # *Create a group called samba*
+
+`sudo gpasswd -a ipcamera samba` # *Add ipcamera user to samba group*
+
+`sudo setfacl -R -m "g:samba:rwx" /home/ipcamera/Videos/` # *Give the samba group rwx permissions to the share*
+
+`sudo setfacl -R -m "g:samba:rwx" /media/camera_clips/H_265_Clips/Videos/` # *Give the samba group rwx permissions to the external mount point share*
+
+`testparm` # *Test samba configurations for syntax errors*
+
+`sudo ufw allow samba` # *Allow samba in the firewall*
+
+`sudo systemctl restart smbd nmbd` # *Restart samba*
+
+
 
 
 ## Purge old files on the ftp box
