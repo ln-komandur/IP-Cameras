@@ -22,6 +22,12 @@ then
     echo "Give the name of the user id to use on the ftp server. Exiting"
     exit 1
 fi
+
+echo @@@@@@@@@@@@@@@@@@@@@@@
+echo Add a user just to ftp photos and video clips from ip cameras
+echo @@@@@@@@@@@@@@@@@@@@@@@
+adduser $1 # Add a user just to ftp photos and video clips from ip cameras
+
 echo @@@@@@@@@@@@@@@@@@@@@@@
 echo Installing nala
 echo @@@@@@@@@@@@@@@@@@@@@@@
@@ -58,10 +64,10 @@ vsftpd -v # Check the version of vsftpd
 echo @@@@@@@@@@@@@@@@@@@@@@@
 echo Host name is $HOSTNAME # Get the hostname to provide in Filezilla for test and to provide in each IP Camera
 
-adduser $1 # Add a user just to ftp photos and video clips from ip cameras
-
+echo @@@@@@@@@@@@@@@@@@@@@@@
+echo Add the provided user to the list of users who can use vsftpd 
+echo @@@@@@@@@@@@@@@@@@@@@@@
 echo $1 | tee -a /etc/vsftpd.userlist # Add that user to the list of users who can use vsftpd
-
 cat /etc/vsftpd.userlist # Check if the user is added to the list of users who can use vsftpd
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
@@ -70,13 +76,19 @@ echo @@@@@@@@@@@@@@@@@@@@@@@
 openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem # Generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 7300 days
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
+echo Backup the original vsftpd.conf
+echo @@@@@@@@@@@@@@@@@@@@@@@
+cp /etc/vsftpd.conf /etc/vsftpd-original.conf
+
+echo @@@@@@@@@@@@@@@@@@@@@@@
 echo Configuring vsftpd
 echo @@@@@@@@@@@@@@@@@@@@@@@
+
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
 echo anonymous_enable=NO
 echo @@@@@@@@@@@@@@@@@@@@@@@
-sed -i 's/anonymous_enable=NO/anonymous_enable=NO/g' /etc/vsftpd.conf
+sed -i 's/anonymous_enable=YES/anonymous_enable=NO/g' /etc/vsftpd.conf
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
 echo local_enable=YES
@@ -98,6 +110,9 @@ echo allow_writeable_chroot=YES
 echo @@@@@@@@@@@@@@@@@@@@@@@
 sed -i 's/allow_writeable_chroot=NO/allow_writeable_chroot=YES/g' /etc/vsftpd.conf
 
+
+
+
 echo @@@@@@@@@@@@@@@@@@@@@@@ MANY OTHER PARAMETERS @@@@@@@@@@@@@@@@@@@@@@@
 echo '
 pasv_min_port=40000
@@ -110,7 +125,13 @@ ssl_enable=YES
 userlist_enable=YES
 userlist_file=/etc/vsftpd.userlist
 userlist_deny=NO
-' >> /etc/vsftpd.conf
+' | sudo tee -a /etc/vsftpd.conf
+
+echo @@@@@@@@@@@@@@@@@@@@@@@
+echo Restart vsftpd service
+echo @@@@@@@@@@@@@@@@@@@@@@@
+service vsftpd restart # Restart vsftpd service
+
 
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
@@ -132,7 +153,3 @@ ufw allow OpenSSH # Allow OpenSSH
 ufw disable && ufw enable # Disable and enable UFW
 
 ufw status # Check if UFW is active
-
-echo @@@@@@@@@@@@@@@@@@@@@@@
-echo Adding ftp user id
-echo @@@@@@@@@@@@@@@@@@@@@@@
