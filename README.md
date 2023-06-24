@@ -273,8 +273,25 @@ valid users = @samba
 
 `sudo systemctl restart smbd nmbd` # *Restart samba*
 
+### Completely uninstalling samba
 
+You might face trouble with samba when your router resolves the hostname of the ftp box as `__MSBROWSE__` blocking the cameras from connecting to it. You can try to resolve NetBIOS for this behavior or use the following commands to uninstall samba completely
 
+`sudo ufw status numbered` # *View active UFW rules*
+
+`sudo ufw delete <rule-number>` # *Delete the UFW rule that allows samba*
+
+`sudo setfacl -x g:samba /home/ipcamera/Videos/` # *Remove the samba group rwx permissions to the share*
+
+`sudo setfacl -x g:samba /media/camera_clips/H_265_Clips/Videos/` # *Remove the samba group rwx permissions to the external mount point share*
+
+`sudo gpasswd --delete ipcamera samba` # *Remove ipcamera user from samba group*
+
+`sudo groupdel samba` # *Delete the samba group*
+
+`sudo smbpasswd -x ipcamera` # *Delete the samba user*
+
+`sudo nala remove samba` # *Uninstall samba*
 
 ## Purge old files on the ftp box
 -    Write a shell script that takes the mount point name(s), number of days of free space to clear for each of them, and file types to delete as arguments.
