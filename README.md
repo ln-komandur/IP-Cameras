@@ -107,7 +107,7 @@ userlist_deny=NO
 
 **Not sure**
 
-`listen = YES` # *Refer [using standalone mode or not](https://www.ibiblio.org/pub/Linux/docs/linux-doc-project/linuxfocus/English/Archives/lf-2004_07-0341.pdf)*
+`listen = YES` # *Refer [using standalone mode or not](https://www.ibiblio.org/pub/Linux/docs/linux-doc-project/linuxfocus/English/Archives/lf-2004_07-0341.pdf). Using standalone mode [allows the server to be accessible to clients connect via two network interfaces](https://serverfault.com/questions/454599/configure-ftp-server-with-two-different-ip-addresses-on-different-subnets-and-se), such as ethernet and wifi*
 
 ### Restart vsftpd
 `sudo systemctl restart vsftpd` # *Restart vsftpd for changes to take effect*
@@ -196,8 +196,8 @@ WantedBy=default.target
 ### Provide FTPs details
 1.  Enable the ftps soft switch
 2.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips` or `/Videos`
-3.  Change the *Transport Mode* from *Auto* to *Port*. Otherwise files uploaded to the ftp server (typically .mp4) may be just 0 Bytes.
-4.  Save ftp details and test them for a successful connection
+3.  [Change the *Transport Mode* from *Auto* to *Port*](https://www.reddit.com/r/reolinkcam/comments/10yq6yp/ftp_files_have_0kb/). Otherwise files uploaded to the ftp server (typically .mp4) may be just 0 Bytes.
+4.  Save ftp details and test them for a successful connection. [Troubleshoot](https://support.reolink.com/hc/en-us/articles/360013262414-FTP-stops-working-/) as required, by reviewing and editing the `/etc/vsftpd.conf` file
 
 ### Configure recording
 1.  Remove watermark
