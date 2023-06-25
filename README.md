@@ -78,11 +78,15 @@ Refer [How to install FTP server (VSFTPD) on Ubuntu](https://www.programbr.com/u
 Edit as needed for the following fields and values. Refer [Setting up vsftp](https://unix.stackexchange.com/questions/654625/setting-up-vsftp) , [Configuring the FTP Server](https://docs.openeuler.org/en/docs/20.09/docs/Administration/configuring-the-ftp-server.html)
 
 ```
+#Edit the below
 anonymous_enable=NO
+
+# Uncomment the below
 local_enable=YES
 write_enable=YES
-
 chroot_local_user=YES
+
+## Add the below to the end
 allow_writeable_chroot=YES
 pasv_min_port=40000
 pasv_max_port=50000
@@ -192,7 +196,8 @@ WantedBy=default.target
 ### Provide FTPs details
 1.  Enable the ftps soft switch
 2.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips` or `/Videos`
-3.  Save ftp details and test them for a successful connection
+3.  Change the *Transport Mode* from *Auto* to *Port*. Otherwise files uploaded to the ftp server (typically .mp4) may be just 0 Bytes.
+4.  Save ftp details and test them for a successful connection
 
 ### Configure recording
 1.  Remove watermark
