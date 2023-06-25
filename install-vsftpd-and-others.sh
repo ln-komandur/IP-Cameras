@@ -86,35 +86,30 @@ echo @@@@@@@@@@@@@@@@@@@@@@@
 
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
-echo anonymous_enable=NO
+echo #Edit anonymous_enable=NO
 echo @@@@@@@@@@@@@@@@@@@@@@@
 sed -i 's/anonymous_enable=YES/anonymous_enable=NO/g' /etc/vsftpd.conf
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
-echo local_enable=YES
+echo Uncomment local_enable=YES
 echo @@@@@@@@@@@@@@@@@@@@@@@
-sed -i 's/local_enable=NO/local_enable=YES/g' /etc/vsftpd.conf
+sed -i 's/#local_enable=YES/local_enable=YES/g' /etc/vsftpd.conf
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
-echo write_enable=YES
+echo Uncomment write_enable=YES
 echo @@@@@@@@@@@@@@@@@@@@@@@
-sed -i 's/write_enable=NO/write_enable=YES/g' /etc/vsftpd.conf
+sed -i 's/#write_enable=YES/write_enable=YES/g' /etc/vsftpd.conf
 
 echo @@@@@@@@@@@@@@@@@@@@@@@
-echo chroot_local_user=YES
+echo Uncomment chroot_local_user=YES. This occurs in 2 places in the conf file
 echo @@@@@@@@@@@@@@@@@@@@@@@
-sed -i 's/chroot_local_user=NO/chroot_local_user=YES/g' /etc/vsftpd.conf
-
-echo @@@@@@@@@@@@@@@@@@@@@@@
-echo allow_writeable_chroot=YES
-echo @@@@@@@@@@@@@@@@@@@@@@@
-sed -i 's/allow_writeable_chroot=NO/allow_writeable_chroot=YES/g' /etc/vsftpd.conf
-
-
+sed -i 's/#chroot_local_user=YES/chroot_local_user=YES/g' /etc/vsftpd.conf
 
 
 echo @@@@@@@@@@@@@@@@@@@@@@@ MANY OTHER PARAMETERS @@@@@@@@@@@@@@@@@@@@@@@
 echo '
+## Added the below to the end
+allow_writeable_chroot=YES
 pasv_min_port=40000
 pasv_max_port=50000
 
