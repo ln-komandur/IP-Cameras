@@ -194,6 +194,9 @@ WantedBy=default.target
         2.  helps the cameras find and connect to the ftp box, even if the router allocates a different ip address to it
 
 ### Provide FTPs details
+
+Refer [How to Set up FTP](https://support.reolink.com/hc/en-us/articles/900003742746-How-to-Set-up-FTP-via-Reolink-Client-New-Client-/)
+
 1.  Enable the ftps soft switch
 2.  Give the name of the remote location starting with `/`, but not ending with it. e.g. `/Clips` or `/Videos`
 3.  [Change the *Transport Mode* from *Auto* to *Port*](https://www.reddit.com/r/reolinkcam/comments/10yq6yp/ftp_files_have_0kb/). Otherwise files uploaded to the ftp server (typically .mp4) may be just 0 Bytes.
