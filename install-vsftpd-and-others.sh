@@ -23,92 +23,97 @@ then
     exit 1
 fi
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Add a user just to ftp photos and video clips from ip cameras
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 adduser $1 # Add a user just to ftp photos and video clips from ip cameras
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Installing nala
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 apt install nala # Use nala to install other software
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Updating nala
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 nala update
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Installing filezilla
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 nala install filezilla # Install filezilla
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Installing ssh
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 nala install ssh # Install ssh if not already installed
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
+echo Installing ffmpeg
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
+nala install ffmpeg # Install ffmpeg if not already installed
+
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Installing vsftpd
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 nala install vsftpd # Install vsftpd
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo vsftpd status is
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 service vsftpd status # Check if vsftpd service is active/running
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo vsftpd version is
 vsftpd -v # Check the version of vsftpd
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Host name is $HOSTNAME # Get the hostname to provide in Filezilla for test and to provide in each IP Camera
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Add the provided user to the list of users who can use vsftpd 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo $1 | tee -a /etc/vsftpd.userlist # Add that user to the list of users who can use vsftpd
 cat /etc/vsftpd.userlist # Check if the user is added to the list of users who can use vsftpd
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Generating TLS certificate
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem # Generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 7300 days
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
-echo Backup the original vsftpd.conf
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
+echo Backing up the original vsftpd.conf
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 cp /etc/vsftpd.conf /etc/vsftpd-original.conf
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Configuring vsftpd
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo #Edit anonymous_enable=NO
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 sed -i 's/anonymous_enable=YES/anonymous_enable=NO/g' /etc/vsftpd.conf
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Uncomment local_enable=YES
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 sed -i 's/#local_enable=YES/local_enable=YES/g' /etc/vsftpd.conf
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Uncomment write_enable=YES
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 sed -i 's/#write_enable=YES/write_enable=YES/g' /etc/vsftpd.conf
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Uncomment chroot_local_user=YES. This occurs in 2 places in the conf file
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 sed -i 's/#chroot_local_user=YES/chroot_local_user=YES/g' /etc/vsftpd.conf
 
 
-echo @@@@@@@@@@@@@@@@@@@@@@@ MANY OTHER PARAMETERS @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@ ADDING MANY OTHER PARAMETERS @-@-@-@-@-@-@-@-@-@-@
 echo '
-## Added the below to the end
+## Added the below to the end of vsftpd.conf
 allow_writeable_chroot=YES
 pasv_min_port=40000
 pasv_max_port=50000
@@ -122,16 +127,16 @@ userlist_file=/etc/vsftpd.userlist
 userlist_deny=NO
 ' | sudo tee -a /etc/vsftpd.conf
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Restart vsftpd service
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 service vsftpd restart # Restart vsftpd service
 
 
 
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Configuring UFW
-echo @@@@@@@@@@@@@@@@@@@@@@@
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 
 ufw status # Check the firewall's status. Could be inactive
 
