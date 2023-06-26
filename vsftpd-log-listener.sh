@@ -6,25 +6,44 @@
 function convert_H264_to_H265 ()
 {
     H265_TS_Video="${2:0: -4}.ts" # .ts file name to save the output to .ts format at the destination path. It avoids overwriting source files.
-    rm "$H265_TS_Video" || true # IF THERE IS A .ts file from an aborted conversion, delete it first. Refer https://superuser.com/questions/76061/how-do-i-make-rm-not-give-an-error-if-a-file-doesnt-exist
+    
+    if [ -f "$H265_TS_Video" ];then # IF THERE IS A .ts file from an aborted conversion, delete it first. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
+        if [ -s "$H265_TS_Video" ];then
+            echo [ "$timestamp" ]: File "$H265_TS_Video" exists from previous attempts and is not empty. Deleting it to start conversion afresh
+        else
+	    echo [ "$timestamp" ]: File "$H265_TS_Video" exists from previous attempts but is empty. Deleting it to start conversion afresh
+        fi
+	rm "$H265_TS_Video" 
+    fi
+    
     echo [ "$timestamp" ]: CONVERTING "$1" to "$H265_TS_Video"
     RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
     ffmpeg -i  "$1" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
-       H265_MPG_Video="${H265_TS_Video%.*}.mpg"
-       echo [ "$timestamp" ]: SUCCESSFULLY converted "$1"
-       echo [ "$timestamp" ]: RENAMING "$H265_TS_Video" to  "$H265_MPG_Video"
-       mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
-       if [ $RESULT -eq 0 ]; then
-           echo [ "$timestamp" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
-           #echo [ "$timestamp" ]: DELETING H.264 file "$1"
-           #rm "$1"
-       else
-           echo [ "$timestamp" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
-       fi
-    else
-       echo [ "$timestamp" ]: FAILED to convert "$1"
-    fi
+        H265_MPG_Video="${H265_TS_Video%.*}.mpg"
+        echo [ "$timestamp" ]: SUCCESSFULLY converted "$1"
+        echo [ "$timestamp" ]: RENAMING "$H265_TS_Video" to  "$H265_MPG_Video"
+        mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
+        if [ $RESULT -eq 0 ]; then
+            echo [ "$timestamp" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
+	    if [ -f "$H265_MPG_Video" ];then # IF THERE IS A NON-EMPTY .mpg file, delete the mp4 file. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
+                if [ -s "$H265_MPG_Video" ];then
+	             echo [ "$timestamp" ]: File "$H265_MPG_Video" exists and is not empty. Deleting H.264 mp4 file.
+	             rm "$1"
+	         else # Keep the mp4 file
+	             echo [ "$timestamp" ]: File "$H265_MPG_Video" exists but is empty. Deleting it and keeping the  H.264 mp4 file 
+	             #mv "$H265_MPG_Video" to destination path
+                 fi
+             else # Keep the mp4 file
+	    	 echo [ "$timestamp" ]: File "$H265_MPG_Video" does not exists. Keeping the  H.264 mp4 file 
+	         #mv "$H265_MPG_Video" to destination path
+             fi
+         else
+             echo [ "$timestamp" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
+         fi
+     else
+         echo [ "$timestamp" ]: FAILED to convert "$1"
+     fi
 }
 
 # This listener filters out successful uploads and then converts MP4 files from H.264 video codec to H.265 video codec and saves the latter as .MPG
