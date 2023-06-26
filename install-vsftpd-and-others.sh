@@ -54,6 +54,11 @@ echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 nala install ffmpeg # Install ffmpeg if not already installed
 
 echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
+echo Installing VLC
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
+nala install vlc # Install vlc if not already installed
+
+echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 echo Installing vsftpd
 echo @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 nala install vsftpd # Install vsftpd
