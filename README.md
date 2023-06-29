@@ -129,6 +129,9 @@ userlist_deny=NO
 ### Test headless operation
 Boot the ftp box without a display / display dummy, keyboard and mouse connected to it. Connect to the ftp server from an ftp client on a different device. Some PCs may need a display dummy. 
 
+### Tuneup SSH
+
+Refer [A comprehensive guide to fixing slow SSH logins](https://jrs-s.net/2017/07/01/slow-ssh-logins/)
 
 ### Test ftp before any user ever logs into the ftp box
 This simulates a power failure situation when vsftpd should start on its own. A headless operation test may also be good to confirm this. 
