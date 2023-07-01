@@ -3,15 +3,23 @@
 #https://stackoverflow.com/questions/48645159/how-to-extract-file-name-from-vsftpd-log-with-shell-script
 #https://creativelycode.com/posts/a-linux-bash-script-to-recognize-when-a-file-is-added-to-ftp
 
+function calculate_percent_compression_savings()
+{   # Refer https://superuser.com/questions/570908/calculate-difference-and-file-sizes-between-two-files
+    mp4_file_size=$(stat -c%s "$1")
+    mpg_file_size=$(stat -c%s "$2")
+    percentage_savings=$(bc <<< "scale=2; ($mp4_file_size - $mpg_file_size)/$mp4_file_size * 100")
+    echo Percentage savings "$percentage_savings %"
+}
+
 function convert_H264_to_H265 ()
 {
     H265_TS_Video="${2:0: -4}.ts" # .ts file name to save the output to .ts format at the destination path. It avoids overwriting source files.
 
     if [ -f "$H265_TS_Video" ];then # IF THERE IS A .ts file from an aborted conversion, delete it first. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
         if [ -s "$H265_TS_Video" ];then
-            echo [ "$(date +"%F %T")" ]: File "$H265_TS_Video" exists from previous attempts and is not empty. Deleting it to start conversion afresh
+            echo [ "$(date +"%F %T")" ]: H265_TS_Video File "$H265_TS_Video" exists from previous attempts and is not empty. Deleting it to start conversion afresh
         else
-	    echo [ "$(date +"%F %T")" ]: File "$H265_TS_Video" exists from previous attempts but is empty. Deleting it to start conversion afresh
+	    echo [ "$(date +"%F %T")" ]: H265_TS_Video File "$H265_TS_Video" exists from previous attempts but is empty. Deleting it to start conversion afresh
         fi
 	rm "$H265_TS_Video"
     fi
@@ -25,21 +33,28 @@ function convert_H264_to_H265 ()
         mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
         if [ $RESULT -eq 0 ]; then
             echo [ "$(date +"%F %T")" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
-	    if [ -f "$H265_MPG_Video" ];then # IF THERE IS A NON-EMPTY .mpg file, delete the mp4 file. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
-                if [ -s "$H265_MPG_Video" ]; then
-	            echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY. 
-	            if [ $4 != "Y" ]; then
+	    
+	    # IF THERE IS A NON-EMPTY .mpg file, delete the mp4 file if the keep_source parameter is not set. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
+     
+            if [ -f "$H265_MPG_Video" ]; then # IF THERE IS A H265_MPG_Video file
+                if [ -s "$H265_MPG_Video" ]; then # IF H265_MPG_Video is not empty
+		    percent_compression_savings = calculate_percent_compression_savings "$1" "$H265_MPG_Video"
+	            echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY. PERCENTAGE SAVINGS "$percent_compression_savings %"
+	            if [ $4 != "Y" ]; then # Dont want to keep the H.264 mp4 source file
 	                echo Deleting H.264 mp4 file
 	                rm "$1"
+		    else # This keeps both the non-zero H.265 mpg file as well as the H.264 mp4 source file
+      	                echo KEEPING H.264 mp4 file and moving it to "$3"
+	                mv "$1" "$3"
 		    fi
-	        else # Keep the mp4 file
-	            echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it and moving the H.264 mp4 file to "$3"
-	            rm "$H265_MPG_Video"
-	            mv "$H265_MPG_Video" "$3"
+	        else # H265_MPG_Video is empty. Keep the mp4 file and move it to the destination path
+	            echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it and moving the H.264 mp4 file to "$3"
+                    rm "$H265_MPG_Video"
+                    mv "$1" "$3"
                 fi
-            else # Keep the mp4 file
-	    	echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
-	        mv "$H265_MPG_Video" "$3"
+            else # H265_MPG_Video does not exist. Keep the mp4 file and move it to the destination path
+	    	echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
+	        mv "$1" "$3"
             fi
         else
             echo [ "$(date +"%F %T")" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
@@ -55,7 +70,7 @@ function convert_H264_to_H265 ()
 
 ext_dr_mnt_pt=$1 # Mount point of external drive
 base_folder=$2 # Base folder
-keep_source=$3 # Whether to keep source .mp4
+keep_source=$3 # Whether to keep the H.264 source .mp4 file after conversion
 
 echo [ "$(date +"%F %T")" ]: BEGIN LOGGING. DESTINATION ASKED AS "$ext_dr_mnt_pt"+"$base_folder"
 
