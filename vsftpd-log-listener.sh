@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/48645159/how-to-extract-file-name-from-vsftpd-log-with-shell-script
 #https://creativelycode.com/posts/a-linux-bash-script-to-recognize-when-a-file-is-added-to-ftp
 
-function calculate_percent_compression_savings()
+function show_percent_savings()
 {   # Refer https://superuser.com/questions/570908/calculate-difference-and-file-sizes-between-two-files
     mp4_file_size=$(stat -c%s "$1")
     mpg_file_size=$(stat -c%s "$2")
@@ -33,13 +33,13 @@ function convert_H264_to_H265 ()
         mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
         if [ $RESULT -eq 0 ]; then
             echo [ "$(date +"%F %T")" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
-	    
+
 	    # IF THERE IS A NON-EMPTY .mpg file, delete the mp4 file if the keep_source parameter is not set. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
-     
+
             if [ -f "$H265_MPG_Video" ]; then # IF THERE IS A H265_MPG_Video file
                 if [ -s "$H265_MPG_Video" ]; then # IF H265_MPG_Video is not empty
 	            echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY.
-	            calculate_percent_compression_savings "$1" "$H265_MPG_Video"
+	            show_percent_savings "$1" "$H265_MPG_Video"
 	            if [ $4 != "Y" ]; then # Dont want to keep the H.264 mp4 source file
 	                echo Deleting H.264 mp4 file
 	                rm "$1"
