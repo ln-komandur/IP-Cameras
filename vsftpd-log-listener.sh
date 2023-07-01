@@ -26,24 +26,27 @@ function convert_H264_to_H265 ()
         if [ $RESULT -eq 0 ]; then
             echo [ "$(date +"%F %T")" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
 	    if [ -f "$H265_MPG_Video" ];then # IF THERE IS A NON-EMPTY .mpg file, delete the mp4 file. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
-                if [ -s "$H265_MPG_Video" ];then
-	             echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY. Deleting H.264 mp4 file
-	             rm "$1"
-	         else # Keep the mp4 file
-	             echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it and moving the H.264 mp4 file to "$3"
-	             rm "$H265_MPG_Video"
-	             mv "$H265_MPG_Video" "$3"
-                 fi
-             else # Keep the mp4 file
-	    	 echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
-	         mv "$H265_MPG_Video" "$3"
-             fi
-         else
-             echo [ "$(date +"%F %T")" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
-         fi
-     else
-         echo [ "$(date +"%F %T")" ]: FAILED to convert "$1"
-     fi
+                if [ -s "$H265_MPG_Video" ]; then
+	            echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY. 
+	            if [ $4="Y" ]; then
+	                echo Deleting H.264 mp4 file
+	                rm "$1"
+		    fi
+	        else # Keep the mp4 file
+	            echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it and moving the H.264 mp4 file to "$3"
+	            rm "$H265_MPG_Video"
+	            mv "$H265_MPG_Video" "$3"
+                fi
+            else # Keep the mp4 file
+	    	echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
+	        mv "$H265_MPG_Video" "$3"
+            fi
+        else
+            echo [ "$(date +"%F %T")" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
+        fi
+    else
+        echo [ "$(date +"%F %T")" ]: FAILED to convert "$1"
+    fi
 }
 
 # This listener filters out successful uploads and then converts MP4 files from H.264 video codec to H.265 video codec and saves the latter as .MPG
@@ -52,7 +55,7 @@ function convert_H264_to_H265 ()
 
 ext_dr_mnt_pt=$1 # Mount point of external drive
 base_folder=$2 # Base folder
-
+keep_source=$3 # Whether to keep source .mp4
 
 echo [ "$(date +"%F %T")" ]: BEGIN LOGGING. DESTINATION ASKED AS "$ext_dr_mnt_pt"+"$base_folder"
 
@@ -94,7 +97,7 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
             fi
  	    ## Get the path to the destination file - End
 
-            convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_file" "$destination_path" & # Run the conversion as a separate process
+            convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_file" "$destination_path" "$keep_source" & # Run the conversion as a separate process
         else
             echo [ "$(date +"%F %T")" ]: NOT AN MP4 FILE AT "$user_home""$file_at_rel_path"
         fi
