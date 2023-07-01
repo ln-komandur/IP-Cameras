@@ -8,7 +8,7 @@ function calculate_percent_compression_savings()
     mp4_file_size=$(stat -c%s "$1")
     mpg_file_size=$(stat -c%s "$2")
     percentage_savings=$(bc <<< "scale=2; ($mp4_file_size - $mpg_file_size)/$mp4_file_size * 100")
-    echo Percentage savings "$percentage_savings %"
+    echo PERCENTAGE SAVINGS "$percentage_savings %"
 }
 
 function convert_H264_to_H265 ()
@@ -38,8 +38,8 @@ function convert_H264_to_H265 ()
      
             if [ -f "$H265_MPG_Video" ]; then # IF THERE IS A H265_MPG_Video file
                 if [ -s "$H265_MPG_Video" ]; then # IF H265_MPG_Video is not empty
-		    percent_compression_savings = calculate_percent_compression_savings "$1" "$H265_MPG_Video"
-	            echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY. PERCENTAGE SAVINGS "$percent_compression_savings %"
+	            echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY.
+	            calculate_percent_compression_savings "$1" "$H265_MPG_Video"
 	            if [ $4 != "Y" ]; then # Dont want to keep the H.264 mp4 source file
 	                echo Deleting H.264 mp4 file
 	                rm "$1"
