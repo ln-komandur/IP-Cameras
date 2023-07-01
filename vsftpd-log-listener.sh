@@ -28,7 +28,7 @@ function convert_H264_to_H265 ()
 	    if [ -f "$H265_MPG_Video" ];then # IF THERE IS A NON-EMPTY .mpg file, delete the mp4 file. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
                 if [ -s "$H265_MPG_Video" ]; then
 	            echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY. 
-	            if [ ! $4 = "Y" ]; then
+	            if [ $4 != "Y" ]; then
 	                echo Deleting H.264 mp4 file
 	                rm "$1"
 		    fi
