@@ -21,22 +21,22 @@ function convert_H264_to_H265 ()
     ffmpeg -i  "$1" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
         H265_MPG_Video="${H265_TS_Video%.*}.mpg"
-        echo [ "$(date +"%F %T")" ]: SUCCESSFULLY converted "$1"
-        echo [ "$(date +"%F %T")" ]: RENAMING "$H265_TS_Video" to  "$H265_MPG_Video"
+        echo [ "$(date +"%F %T")" ]: SUCCESSFULLY converted "$1". RENAMING "$H265_TS_Video" to "$H265_MPG_Video"
         mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
         if [ $RESULT -eq 0 ]; then
             echo [ "$(date +"%F %T")" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
 	    if [ -f "$H265_MPG_Video" ];then # IF THERE IS A NON-EMPTY .mpg file, delete the mp4 file. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
                 if [ -s "$H265_MPG_Video" ];then
-	             echo [ "$(date +"%F %T")" ]: File "$H265_MPG_Video" exists and is not empty. Deleting H.264 mp4 file.
+	             echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY. Deleting H.264 mp4 file
 	             rm "$1"
 	         else # Keep the mp4 file
-	             echo [ "$(date +"%F %T")" ]: File "$H265_MPG_Video" exists but is empty. Deleting it and keeping the  H.264 mp4 file
-	             #mv "$H265_MPG_Video" to destination path
+	             echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it and moving the H.264 mp4 file to "$3"
+	             rm "$H265_MPG_Video"
+	             mv "$H265_MPG_Video" "$3"
                  fi
              else # Keep the mp4 file
-	    	 echo [ "$(date +"%F %T")" ]: File "$H265_MPG_Video" does not exists. Keeping the  H.264 mp4 file
-	         #mv "$H265_MPG_Video" to destination path
+	    	 echo [ "$(date +"%F %T")" ]: FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
+	         mv "$H265_MPG_Video" "$3"
              fi
          else
              echo [ "$(date +"%F %T")" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
@@ -60,10 +60,9 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
     if echo "$log_line" | grep -q 'OK UPLOAD:'; then # If there is a successful upload
         username=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/') # Find out which user uploaded
         user_home=$(getent passwd "$username" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
-        echo [ "$(date +"%F %T")" ]: USERNAME is "$username" : USER HOME is "$user_home"
         file_at_rel_path=$(echo "$log_line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') # Take everything within quotes in the log line. https://www.baeldung.com/linux/process-a-bash-variable-with-sed
         rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
-        echo [ "$(date +"%F %T")" ]: SUCCESSFUL UPLOAD at "$user_home""$file_at_rel_path" # Log the full source path
+	echo [ "$(date +"%F %T")" ]: USERNAME is "$username" : USER HOME is "$user_home". SUCCESSFUL UPLOAD at "$user_home""$file_at_rel_path" # Log the full source path
 
         if [[ "$file_at_rel_path" == *.mp4 ]]; then # If this is an mp4 file
 
@@ -95,8 +94,7 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
             fi
  	    ## Get the path to the destination file - End
 
-
-            convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_file" & # Run the conversion as a separate process
+            convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_file" "$destination_path" & # Run the conversion as a separate process
         else
             echo [ "$(date +"%F %T")" ]: NOT AN MP4 FILE AT "$user_home""$file_at_rel_path"
         fi
