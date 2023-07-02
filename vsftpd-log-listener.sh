@@ -17,22 +17,22 @@ function convert_H264_to_H265 ()
 
     if [ -f "$H265_TS_Video" ];then # IF THERE IS A .ts file from an aborted conversion, delete it first. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
         if [ -s "$H265_TS_Video" ];then
-            echo [ "$(date +"%F %T")" ]: H265_TS_Video File "$H265_TS_Video" exists from previous attempts and is not empty. Deleting it to start conversion afresh
+            echo [ "$(date +"%T")" ]: H265_TS_Video File "$H265_TS_Video" exists from previous attempts and is not empty. Deleting it to start conversion afresh
         else
-	    echo [ "$(date +"%F %T")" ]: H265_TS_Video File "$H265_TS_Video" exists from previous attempts but is empty. Deleting it to start conversion afresh
+	    echo [ "$(date +"%T")" ]: H265_TS_Video File "$H265_TS_Video" exists from previous attempts but is empty. Deleting it to start conversion afresh
         fi
 	rm "$H265_TS_Video"
     fi
 
-    echo [ "$(date +"%F %T")" ]: CONVERTING "$1" to "$H265_TS_Video"
+    echo [ "$(date +"%T")" ]: CONVERTING "$1" to "$H265_TS_Video"
     RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
     ffmpeg -i  "$1" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
         H265_MPG_Video="${H265_TS_Video%.*}.mpg"
-        echo [ "$(date +"%F %T")" ]: SUCCESSFULLY converted "$1". RENAMING "$H265_TS_Video" to "$H265_MPG_Video"
+        echo [ "$(date +"%T")" ]: SUCCESSFULLY converted "$1". RENAMING "$H265_TS_Video" to "$H265_MPG_Video"
         mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
         if [ $RESULT -eq 0 ]; then
-            echo [ "$(date +"%F %T")" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
+            echo [ "$(date +"%T")" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
 
 	    # IF THERE IS A NON-EMPTY .mpg file, delete the mp4 file if the keep_source parameter is not set. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
 
@@ -54,12 +54,12 @@ function convert_H264_to_H265 ()
 	    	echo H265_MPG_Video FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
             fi
             if [ -f "$1" ];then mv "$1" "$3"; fi # If the H.264 mp4 source file still exists (hasnt been deleted), move it to the destination path
-     
+
         else
-            echo [ "$(date +"%F %T")" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
+            echo [ "$(date +"%T")" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
         fi
     else
-        echo [ "$(date +"%F %T")" ]: FAILED to convert "$1"
+        echo [ "$(date +"%T")" ]: FAILED to convert "$1"
     fi
 }
 
@@ -90,30 +90,30 @@ tail -f -s 5 -n 1 /var/log/vsftpd.log | while read log_line; do
             ext_dr_mnt_status=false
             if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already / still mounted. Mounting it is out of scope of this shell script
                 ext_dr_mnt_status=true
-                echo [ "$(date +"%F %T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$user_home""$base_folder" AND DOING mount --rbind
+                echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$user_home""$base_folder" AND DOING mount --rbind
                 mkdir -p  "$user_home""$base_folder"  # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user 
                 mount --rbind "$ext_dr_mnt_pt""$base_folder" "$user_home""$base_folder" # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
             else
-                echo [ "$(date +"%F %T")" ]: EXTERNAL DRIVE IS NOT MOUNTED
+                echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS NOT MOUNTED
             fi
 
             if $ext_dr_mnt_status && [[ $user_home != $ext_dr_mnt_pt ]]; then # Change destination_path if the external mount point is mounted, and is different from the mount point of the users home
 
-                echo [ "$(date +"%F %T")" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path"
+                echo [ "$(date +"%T")" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path"
                 mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path" # Create the directory
 
                 if [ -d "$ext_dr_mnt_pt""$base_folder""$rel_path" ]; then # Check if the newly created path exists before pointing variables to it
                     destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
                     destination_file="$ext_dr_mnt_pt""$base_folder""$file_at_rel_path"
                 else
-                    echo [ "$(date +"%F %T")" ]: NOT CHANGED DESTINATION PATH OR DESTINATION FILE
+                    echo [ "$(date +"%T")" ]: NOT CHANGED DESTINATION PATH OR DESTINATION FILE
                 fi
             fi
  	    ## Get the path to the destination file - End
 
             convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_file" "$destination_path" "$keep_source" & # Run the conversion as a separate process
         else
-            echo [ "$(date +"%F %T")" ]: NOT AN MP4 FILE AT "$user_home""$file_at_rel_path"
+            echo [ "$(date +"%T")" ]: NOT AN MP4 FILE AT "$user_home""$file_at_rel_path"
         fi
     fi
 done
