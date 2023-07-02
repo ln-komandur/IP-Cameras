@@ -38,24 +38,23 @@ function convert_H264_to_H265 ()
 
             if [ -f "$H265_MPG_Video" ]; then # IF THERE IS A H265_MPG_Video file
                 if [ -s "$H265_MPG_Video" ]; then # IF H265_MPG_Video is not empty
-	            echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY.
+	            echo H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY.
 	            show_percent_savings "$1" "$H265_MPG_Video"
 	            if [ $4 != "Y" ]; then # Dont want to keep the H.264 mp4 source file
-	                echo Deleting H.264 mp4 file
+	                echo Deleting H.264 mp4 file "$1"
 	                rm "$1"
 		    else # This keeps both the non-zero H.265 mpg file as well as the H.264 mp4 source file
       	                echo KEEPING H.264 mp4 file and moving it to "$3"
-	                mv "$1" "$3"
 		    fi
 	        else # H265_MPG_Video is empty. Keep the mp4 file and move it to the destination path
-	            echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it and moving the H.264 mp4 file to "$3"
+	            echo H265_MPG_Video FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it and moving the H.264 mp4 file to "$3"
                     rm "$H265_MPG_Video"
-                    mv "$1" "$3"
                 fi
             else # H265_MPG_Video does not exist. Keep the mp4 file and move it to the destination path
-	    	echo [ "$(date +"%F %T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
-	        mv "$1" "$3"
+	    	echo H265_MPG_Video FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
             fi
+            if [ -f "$1" ];then mv "$1" "$3"; fi # If the H.264 mp4 source file still exists (hasnt been deleted), move it to the destination path
+     
         else
             echo [ "$(date +"%F %T")" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
         fi
