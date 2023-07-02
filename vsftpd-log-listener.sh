@@ -28,7 +28,7 @@ function convert_H264_to_H265 ()
     RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
     ffmpeg -i  "$1" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
-        H265_MPG_Video="${H265_TS_Video%.*}.mpg"
+        H265_MPG_Video="${H265_TS_Video%.*}.mpg" # Same name as TS file but with mpg extension
         echo [ "$(date +"%T")" ]: SUCCESSFULLY converted "$1". RENAMING "$H265_TS_Video" to "$H265_MPG_Video"
         mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
         if [ $RESULT -eq 0 ]; then
@@ -75,43 +75,36 @@ echo [ "$(date +"%F %T")" ]: BEGIN LOGGING. DESTINATION ASKED AS "$ext_dr_mnt_pt
 
 # https://unix.stackexchange.com/questions/12075/best-way-to-follow-a-log-and-execute-a-command-when-some-text-appears-in-the-log
 # -F to handle log rotation - i.e. my.log becomes full and moves to my.log.1
-tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.*?OK\sUPLOAD.*?mp4.*?$" | while read -r log_line ; do  # Get all successful mp4 uploads
+tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+?$" | while read -r log_line ; do  # Get at least one successful mp4 upload
 
     file_at_rel_path=$(echo "$log_line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') # Take everything within quotes in the log line. https://www.baeldung.com/linux/process-a-bash-variable-with-sed
-    if [ -f "$file_at_rel_path" ]; then # If the mp4 file still exists. i.e. has not been converted already
-        username=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/') # Find out which user uploaded
-        user_home=$(getent passwd "$username" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
-        rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
-        echo [ "$(date +"%F %T")" ]: USERNAME is "$username" : USER HOME is "$user_home". SUCCESSFUL UPLOAD at "$user_home""$file_at_rel_path" # Log the full source path
+    username=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/') # Find out which user uploaded
+    user_home=$(getent passwd "$username" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
+    rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
+    
+    echo TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
+    destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
 
-        destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
-        destination_file="$user_home""$file_at_rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
+    ## Get the path to the destination file - Begin
+    if [[ mountpoint -q "$ext_dr_mnt_pt" && $user_home != $ext_dr_mnt_pt ]]; then # Check if the external drive is already / still mounted and if the external mount point is different from the mount point of the users home.
+        # Mounting external drive is out of scope of this shell script. It has to be done in /etc/fstab
 
-        ext_dr_mnt_status=false
-        if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already / still mounted. Mounting it is out of scope of this shell script
-            ext_dr_mnt_status=true
-            echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$user_home""$base_folder" AND DOING mount --rbind
-            mkdir -p  "$user_home""$base_folder"  # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user 
-            mount --rbind "$ext_dr_mnt_pt""$base_folder" "$user_home""$base_folder" # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
-        else
-            echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS NOT MOUNTED
-        fi
-
-        if $ext_dr_mnt_status && [[ $user_home != $ext_dr_mnt_pt ]]; then # Change destination_path if the external mount point is mounted, and is different from the mount point of the users home
-
-            echo [ "$(date +"%T")" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path"
-            mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path" # Create the directory
-
-            if [ -d "$ext_dr_mnt_pt""$base_folder""$rel_path" ]; then # Check if the newly created path exists before pointing variables to it
-                destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
-                destination_file="$ext_dr_mnt_pt""$base_folder""$file_at_rel_path"
-            else
-                echo [ "$(date +"%T")" ]: NOT CHANGED DESTINATION PATH OR DESTINATION FILE
-            fi
-        fi
- 	## Get the path to the destination file - End
-        convert_H264_to_H265 "$user_home""$file_at_rel_path" "$destination_file" "$destination_path" "$keep_source" & # Run the conversion as a separate process
+	echo [ "$(date +"%T")" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path"
+        mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path" # Create the directory in the external mount point
+	# Change destination_path to the external mount point
+	destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
+	
+        echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$user_home""$base_folder" AND DOING mount --rbind to it
+        mkdir -p  "$user_home""$base_folder"  # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user 
+        mount --rbind "$ext_dr_mnt_pt""$base_folder" "$user_home""$base_folder" # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
     else
-        echo [ "$(date +"%T")" ]: "$user_home""$file_at_rel_path" has possibly been converted already
+        echo [ "$(date +"%T")" ]: NOT CHANGED DESTINATION PATH. EXTERNAL DRIVE MAY NOT BE MOUNTED, OR IS THE SAME AS THE USERs HOME
     fi
+    ## Get the path to the destination file - End
+
+    ls -1 "$user_home""$rel_path""\/*.mp4" | while read mp4_file_name; do 
+	echo [ "$(date +"%F %T")" ]: FOUND UNCONVERTED .mp4 FILE at "$user_home""$rel_path""$mp4_file_name" # Log the full source path
+        destination_file="$destination_path""\/""$mp4_file_name"
+	convert_H264_to_H265 "$user_home""$rel_path""$mp4_file_name" "$destination_file" "$destination_path" "$keep_source" & # Run the conversion as a separate process
+    done
 done
