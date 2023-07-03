@@ -13,7 +13,12 @@ function show_percent_savings()
 
 function convert_H264_to_H265 ()
 {
-    H265_TS_Video="${2:0: -4}.ts" # .ts file name to save the output to .ts format at the destination path. It avoids overwriting source files.
+    if [ -f "$1" ];then # If the H.264 mp4 source file exists, move it to the destination path first so that repeated attempts to convert it are preempted
+        mv "$1" "$3"; # $3 is just the location of the directory
+        echo [ "$(date +"%T")" ]: MOVED H.264 mp4 source file to "$3"
+    fi
+
+    H265_TS_Video="${2:0: -4}.ts" # .ts file name to save the output to .ts format at the destination path. It avoids overwriting source files. $2 has the name of the directory and the file name too
 
     if [ -f "$H265_TS_Video" ];then # IF THERE IS A .ts file from an aborted conversion, delete it first. https://tecadmin.net/bash-script-check-if-file-is-empty-or-not/
         if [ -s "$H265_TS_Video" ];then
@@ -24,12 +29,12 @@ function convert_H264_to_H265 ()
 	rm "$H265_TS_Video"
     fi
 
-    echo [ "$(date +"%T")" ]: CONVERTING "$1" to "$H265_TS_Video"
+    echo [ "$(date +"%T")" ]: CONVERTING "$2" to "$H265_TS_Video"
     RESULT=$? # From https://unix.stackexchange.com/questions/22726/how-to-conditionally-do-something-if-a-command-succeeded-or-failed
-    ffmpeg -i  "$1" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
+    ffmpeg -i  "$2" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
         H265_MPG_Video="${H265_TS_Video%.*}.mpg" # Same name as TS file but with mpg extension
-        echo [ "$(date +"%T")" ]: SUCCESSFULLY converted "$1". RENAMING "$H265_TS_Video" to "$H265_MPG_Video"
+        echo [ "$(date +"%T")" ]: SUCCESSFULLY converted "$2". RENAMING "$H265_TS_Video" to "$H265_MPG_Video"
         mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
         if [ $RESULT -eq 0 ]; then
             echo [ "$(date +"%T")" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
@@ -38,28 +43,28 @@ function convert_H264_to_H265 ()
 
             if [ -f "$H265_MPG_Video" ]; then # IF THERE IS A H265_MPG_Video file
                 if [ -s "$H265_MPG_Video" ]; then # IF H265_MPG_Video is not empty
-	            echo H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY.
-	            show_percent_savings "$1" "$H265_MPG_Video"
+	            echo [ "$(date +"%T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY.
+	            show_percent_savings "$2" "$H265_MPG_Video"
 	            if [ $4 != "Y" ]; then # Dont want to keep the H.264 mp4 source file
-	                echo Deleting H.264 mp4 file "$1"
-	                rm "$1"
+	                echo [ "$(date +"%T")" ]: Deleting H.264 mp4 file "$2"
+	                rm "$2"
 		    else # This keeps both the non-zero H.265 mpg file as well as the H.264 mp4 source file
-      	                echo KEEPING H.264 mp4 file and moving it to "$3"
+      	                echo [ "$(date +"%T")" ]: KEEPING H.264 mp4 file moved to "$2"
 		    fi
 	        else # H265_MPG_Video is empty. Keep the mp4 file and move it to the destination path
-	            echo H265_MPG_Video FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it and moving the H.264 mp4 file to "$3"
+	            echo [ "$(date +"%T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS BUT IS EMPTY. Deleting it.
+                    echo [ "$(date +"%T")" ]: KEEPING H.264 mp4 file moved to "$2"
                     rm "$H265_MPG_Video"
                 fi
             else # H265_MPG_Video does not exist. Keep the mp4 file and move it to the destination path
-	    	echo H265_MPG_Video FILE "$H265_MPG_Video" DOES NOT EXIST. Moving the H.264 mp4 file to "$3"
+	    	echo [ "$(date +"%T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" DOES NOT EXIST.
+                echo [ "$(date +"%T")" ]: KEEPING H.264 mp4 file moved to "$2"
             fi
-            if [ -f "$1" ];then mv "$1" "$3"; fi # If the H.264 mp4 source file still exists (hasnt been deleted), move it to the destination path
-
         else
             echo [ "$(date +"%T")" ]: FAILED to RENAME "$H265_TS_Video" to MPG file "$H265_MPG_Video"
         fi
     else
-        echo [ "$(date +"%T")" ]: FAILED to convert "$1"
+        echo [ "$(date +"%T")" ]: FAILED to convert "$2"
     fi
 }
 
@@ -71,7 +76,7 @@ ext_dr_mnt_pt=$1 # Mount point of external drive
 base_folder=$2 # Base folder
 keep_source=$3 # Whether to keep the H.264 source .mp4 file after conversion
 
-echo [ "$(date +"%F %T")" ]: BEGIN LOGGING. DESTINATION ASKED AS "$ext_dr_mnt_pt"+"$base_folder"
+echo [ "$(date +"%F %T")" ]: -------- BEGIN LOGGING --------. DESTINATION ASKED AS "$ext_dr_mnt_pt"+"$base_folder"
 
 # https://unix.stackexchange.com/questions/12075/best-way-to-follow-a-log-and-execute-a-command-when-some-text-appears-in-the-log
 # -F to handle log rotation - i.e. my.log becomes full and moves to my.log.1
@@ -81,30 +86,48 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
     username=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/') # Find out which user uploaded
     user_home=$(getent passwd "$username" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
     rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
-    
-    echo TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
+
+    echo [ "$(date +"%T")" ]: TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
     destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
 
     ## Get the path to the destination file - Begin
-    if [[ mountpoint -q "$ext_dr_mnt_pt" && $user_home != $ext_dr_mnt_pt ]]; then # Check if the external drive is already / still mounted and if the external mount point is different from the mount point of the users home.
-        # Mounting external drive is out of scope of this shell script. It has to be done in /etc/fstab
 
-	echo [ "$(date +"%T")" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path"
-        mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path" # Create the directory in the external mount point
-	# Change destination_path to the external mount point
-	destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
-	
-        echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$user_home""$base_folder" AND DOING mount --rbind to it
-        mkdir -p  "$user_home""$base_folder"  # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user 
-        mount --rbind "$ext_dr_mnt_pt""$base_folder" "$user_home""$base_folder" # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
+    if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already / still mounted
+        if [[ $user_home != $ext_dr_mnt_pt ]]; then # and if the external mount point is different from the mount point of the users home
+            # Mounting external drive is out of scope of this shell script. It has to be done in /etc/fstab
+
+	    echo [ "$(date +"%T")" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path"
+            mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path" # Create the directory in the external mount point
+	    # Change destination_path to the external mount point
+	    destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
+
+            echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$user_home""$base_folder" AND DOING mount --rbind to it
+            mkdir -p  "$user_home""$base_folder"  # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
+            mount --rbind "$ext_dr_mnt_pt""$base_folder" "$user_home""$base_folder" # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
+        else
+            echo [ "$(date +"%T")" ]: NOT CHANGED DESTINATION PATH. EXTERNAL DRIVE MAY NOT BE MOUNTED, OR IS THE SAME AS THE USERs HOME
+        fi
     else
-        echo [ "$(date +"%T")" ]: NOT CHANGED DESTINATION PATH. EXTERNAL DRIVE MAY NOT BE MOUNTED, OR IS THE SAME AS THE USERs HOME
+        echo [ "$(date +"%T")" ]: EXTERNAL MOUNT POINT is NOT MOUNTED
     fi
     ## Get the path to the destination file - End
+    all_pending_mp4_files="$user_home""$rel_path""/*.mp4"
+    echo [ "$(date +"%T")" ]: All pending MP4 files "$all_pending_mp4_files"
 
-    ls -1 "$user_home""$rel_path""\/*.mp4" | while read mp4_file_name; do 
-	echo [ "$(date +"%F %T")" ]: FOUND UNCONVERTED .mp4 FILE at "$user_home""$rel_path""$mp4_file_name" # Log the full source path
-        destination_file="$destination_path""\/""$mp4_file_name"
-	convert_H264_to_H265 "$user_home""$rel_path""$mp4_file_name" "$destination_file" "$destination_path" "$keep_source" & # Run the conversion as a separate process
+    for mp4_file_name in $all_pending_mp4_files
+    do
+        echo [ "$(date +"%T")" ]: ONE FILE IS "$mp4_file_name"
+        if  test `find "$mp4_file_name" -mmin +2`; then # Is this file more than 2 minutes old. If not, it  is perhaps still being written to
+            echo [ "$(date +"%T")" ]: PROCESSING MP4 file name "$mp4_file_name" as it more than 2 minutes old
+	    echo [ "$(date +"%T")" ]: FOUND UNCONVERTED .mp4 FILE at "$mp4_file_name" # Log the full source path
+
+            file_name_only=$(echo "$mp4_file_name" | sed -r 's/(^\/.+)*(\/.+\..+)$/\2/') # Take everything after the last \/, including it, till the end in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
+
+            destination_file="$destination_path""$file_name_only"
+            echo [ "$(date +"%T")" ]: DESTINATION FILE "$destination_file"
+	    convert_H264_to_H265 "$mp4_file_name" "$destination_file" "$destination_path" "$keep_source" & # Run the conversion as a separate process
+        else
+            echo [ "$(date +"%T")" ]: MP4 FILE "$mp4_file_name" is less than 2 minutes old. Perhaps still being written. Perhaps there are no files
+        fi
     done
 done
