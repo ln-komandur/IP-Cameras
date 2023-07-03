@@ -92,7 +92,7 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
 
     ## Set the path to the destination file - Begin
     if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already / still mounted
-        echo [ "$(date +"%T")" ]: EXTERNAL MOUNT POINT $ext_dr_mnt_pt is ALREADY / STILL MOUNTED. 
+        echo [ "$(date +"%T")" ]: EXTERNAL MOUNT POINT $ext_dr_mnt_pt is ALREADY / STILL MOUNTED.
 	if [[ $user_home != $ext_dr_mnt_pt ]]; then # and if the external mount point is different from the mount point of the users home
             # Mounting external drive is out of scope of this shell script. It has to be done in /etc/fstab
 	    # Change destination_path to the external mount point
@@ -101,7 +101,7 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
 	    echo [ "$(date +"%T")" ]: CREATING DIRECTORY  in the external mount point - mkdir -p "$destination_path"
             mkdir -p "$destination_path" # Create directory in the external mount point
 
-            echo [ "$(date +"%T")" ]: CREATING "$base_folder" in "$user_home" AND DOING mount --rbind to it
+            echo [ "$(date +"%T")" ]: CREATING "$base_folder" in "$user_home" AND DOING mount --rbind to "$ext_dr_mnt_pt""$base_folder"
             mkdir -p  "$user_home""$base_folder"  # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
             mount --rbind "$ext_dr_mnt_pt""$base_folder" "$user_home""$base_folder" # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
         else
@@ -111,7 +111,7 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
         echo [ "$(date +"%T")" ]: EXTERNAL MOUNT POINT is NOT MOUNTED
     fi
     ## Set the path to the destination file - End
-    
+
     all_pending_mp4_files="$user_home""$rel_path""/*.mp4"
     echo [ "$(date +"%T")" ]: FINDING ALL MP4 files at "$all_pending_mp4_files" PENDING CONVERSION
 
