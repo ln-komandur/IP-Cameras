@@ -15,7 +15,7 @@ function convert_H264_to_H265 ()
 {
     if [ -f "$1" ];then # If the H.264 mp4 source file exists, move it to the destination path first so that repeated attempts to convert it are preempted
         mv "$1" "$3"; # $3 is just the location of the directory
-        echo [ "$(date +"%T")" ]: MOVED H.264 mp4 source file to "$3"
+        echo [ "$(date +"%T")" ]: MOVED H.264 mp4 source file "$1" to "$3" # The full path and file name will now be the same as $2
     fi
 
     H265_TS_Video="${2:0: -4}.ts" # .ts file name to save the output to .ts format at the destination path. It avoids overwriting source files. $2 has the name of the directory and the file name too
@@ -87,7 +87,7 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
     user_home=$(getent passwd "$username" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
     rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
 
-    echo [ "$(date +"%T")" ]: TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
+    echo [ "$(date +"%F %T")" ]: TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
     destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
 
     ## Get the path to the destination file - Begin
@@ -112,22 +112,20 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
     fi
     ## Get the path to the destination file - End
     all_pending_mp4_files="$user_home""$rel_path""/*.mp4"
-    echo [ "$(date +"%T")" ]: All pending MP4 files "$all_pending_mp4_files"
+    echo [ "$(date +"%T")" ]: FINDING ALL MP4 files at "$all_pending_mp4_files" PENDING CONVERSION
 
-    for mp4_file_name in $all_pending_mp4_files
+    for mp4_src_file_name in $all_pending_mp4_files
     do
-        echo [ "$(date +"%T")" ]: ONE FILE IS "$mp4_file_name"
-        if  test `find "$mp4_file_name" -mmin +2`; then # Is this file more than 2 minutes old. If not, it  is perhaps still being written to
-            echo [ "$(date +"%T")" ]: PROCESSING MP4 file name "$mp4_file_name" as it more than 2 minutes old
-	    echo [ "$(date +"%T")" ]: FOUND UNCONVERTED .mp4 FILE at "$mp4_file_name" # Log the full source path
-
-            file_name_only=$(echo "$mp4_file_name" | sed -r 's/(^\/.+)*(\/.+\..+)$/\2/') # Take everything after the last \/, including it, till the end in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
-
+        echo [ "$(date +"%T")" ]: CHECKING IF "$mp4_src_file_name" can be converted now # Log the full source path
+        if  test `find "$mp4_src_file_name" -mmin +2`; then # Is this file more than 2 minutes old. If not, it  is perhaps still being written to
+            echo [ "$(date +"%T")" ]: CAN CONVERT "$mp4_src_file_name" as it more than 2 minutes old
+            file_name_only=$(echo "$mp4_src_file_name" | sed -r 's/(^\/.+)*(\/.+\..+)$/\2/') # Take everything after the last \/, including it, till the end in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
             destination_file="$destination_path""$file_name_only"
-            echo [ "$(date +"%T")" ]: DESTINATION FILE "$destination_file"
-	    convert_H264_to_H265 "$mp4_file_name" "$destination_file" "$destination_path" "$keep_source" & # Run the conversion as a separate process
+
+            echo [ "$(date +"%T")" ]: DESTINATION OF MP4 FILE post conversion will be "$destination_file"
+	    convert_H264_to_H265 "$mp4_src_file_name" "$destination_file" "$destination_path" "$keep_source" & # Run the conversion as a separate process
         else
-            echo [ "$(date +"%T")" ]: MP4 FILE "$mp4_file_name" is less than 2 minutes old. Perhaps still being written. Perhaps there are no files
+            echo [ "$(date +"%T")" ]: MP4 SOURCE FILE "$mp4_src_file_name" is less than 2 minutes old. Perhaps still BEING WRITTEN TO or IS ALREADY CONVERTED AND NOT THERE
         fi
     done
 done
