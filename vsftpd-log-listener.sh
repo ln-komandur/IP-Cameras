@@ -76,15 +76,15 @@ ext_dr_mnt_pt=$1 # Mount point of external drive
 base_folder=$2 # Base folder
 keep_source=$3 # Whether to keep the H.264 source .mp4 file after conversion
 
-echo [ "$(date +"%F %T")" ]: -------- BEGIN LOGGING --------. DESTINATION ASKED AS "$ext_dr_mnt_pt"+"$base_folder"
+echo [ "$(date +"%F %T")" ]: -------- BEGIN LOGGING --------. DESTINATION ASKED AS "$ext_dr_mnt_pt" + "$base_folder"
 
 # https://unix.stackexchange.com/questions/12075/best-way-to-follow-a-log-and-execute-a-command-when-some-text-appears-in-the-log
 # -F to handle log rotation - i.e. my.log becomes full and moves to my.log.1
 tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+?$" | while read -r log_line ; do  # Get at least one successful mp4 upload
 
     file_at_rel_path=$(echo "$log_line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') # Take everything within quotes in the log line. https://www.baeldung.com/linux/process-a-bash-variable-with-sed
-    username=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/') # Find out which user uploaded
-    user_home=$(getent passwd "$username" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
+    user_name=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/') # Find out which user uploaded
+    user_home=$(getent passwd "$user_name" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
     rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
 
     echo [ "$(date +"%F %T")" ]: TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
@@ -95,13 +95,13 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
     if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already / still mounted
         if [[ $user_home != $ext_dr_mnt_pt ]]; then # and if the external mount point is different from the mount point of the users home
             # Mounting external drive is out of scope of this shell script. It has to be done in /etc/fstab
-
-	    echo [ "$(date +"%T")" ]: CREATE DIRECTORY  mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path"
-            mkdir -p "$ext_dr_mnt_pt""$base_folder""$rel_path" # Create the directory in the external mount point
 	    # Change destination_path to the external mount point
-	    destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path"
+	    destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path" # Change the destination path to the external mount point
 
-            echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$user_home""$base_folder" AND DOING mount --rbind to it
+	    echo [ "$(date +"%T")" ]: CREATE DIRECTORY  in the external mount point - mkdir -p "$destination_path"
+            mkdir -p "$destination_path" # Create directory in the external mount point
+
+            echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$base_folder" in "$user_home" AND DOING mount --rbind to it
             mkdir -p  "$user_home""$base_folder"  # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
             mount --rbind "$ext_dr_mnt_pt""$base_folder" "$user_home""$base_folder" # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
         else
