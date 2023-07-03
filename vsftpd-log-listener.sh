@@ -90,18 +90,18 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
     echo [ "$(date +"%F %T")" ]: TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
     destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
 
-    ## Get the path to the destination file - Begin
-
+    ## Set the path to the destination file - Begin
     if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already / still mounted
-        if [[ $user_home != $ext_dr_mnt_pt ]]; then # and if the external mount point is different from the mount point of the users home
+        echo [ "$(date +"%T")" ]: EXTERNAL MOUNT POINT $ext_dr_mnt_pt is ALREADY / STILL MOUNTED. 
+	if [[ $user_home != $ext_dr_mnt_pt ]]; then # and if the external mount point is different from the mount point of the users home
             # Mounting external drive is out of scope of this shell script. It has to be done in /etc/fstab
 	    # Change destination_path to the external mount point
 	    destination_path="$ext_dr_mnt_pt""$base_folder""$rel_path" # Change the destination path to the external mount point
 
-	    echo [ "$(date +"%T")" ]: CREATE DIRECTORY  in the external mount point - mkdir -p "$destination_path"
+	    echo [ "$(date +"%T")" ]: CREATING DIRECTORY  in the external mount point - mkdir -p "$destination_path"
             mkdir -p "$destination_path" # Create directory in the external mount point
 
-            echo [ "$(date +"%T")" ]: EXTERNAL DRIVE IS ALREADY / STILL MOUNTED. CREATING "$base_folder" in "$user_home" AND DOING mount --rbind to it
+            echo [ "$(date +"%T")" ]: CREATING "$base_folder" in "$user_home" AND DOING mount --rbind to it
             mkdir -p  "$user_home""$base_folder"  # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
             mount --rbind "$ext_dr_mnt_pt""$base_folder" "$user_home""$base_folder" # This helps ftp clients see the base_folder on the external mount point in the root folder of the ftp user
         else
@@ -110,7 +110,8 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
     else
         echo [ "$(date +"%T")" ]: EXTERNAL MOUNT POINT is NOT MOUNTED
     fi
-    ## Get the path to the destination file - End
+    ## Set the path to the destination file - End
+    
     all_pending_mp4_files="$user_home""$rel_path""/*.mp4"
     echo [ "$(date +"%T")" ]: FINDING ALL MP4 files at "$all_pending_mp4_files" PENDING CONVERSION
 
