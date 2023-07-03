@@ -34,7 +34,7 @@ function convert_H264_to_H265 ()
     ffmpeg -i  "$2" -c:v libx265 -vtag hvc1 -loglevel quiet -x265-params log-level=quiet "$H265_TS_Video" <>/dev/null 2>&1 # ffmpeg conversion command . Quietened as in https://unix.stackexchange.com/questions/229390/bash-ffmpeg-libx265-prevent-output
     if [ $RESULT -eq 0 ]; then
         H265_MPG_Video="${H265_TS_Video%.*}.mpg" # Same name as TS file but with mpg extension
-        echo [ "$(date +"%T")" ]: SUCCESSFULLY converted "$2". RENAMING "$H265_TS_Video" to "$H265_MPG_Video"
+        echo [ "$(date +"%T")" ]: CONVERTED "$2". RENAMING "$H265_TS_Video" to "$H265_MPG_Video"
         mv "$H265_TS_Video" "$H265_MPG_Video" # Change the file extension from .ts to .mpg in the same directory. This can be set up to send it to any directory.
         if [ $RESULT -eq 0 ]; then
             echo [ "$(date +"%T")" ]: RENAMED "$H265_TS_Video" to MPG file "$H265_MPG_Video"
@@ -43,7 +43,7 @@ function convert_H264_to_H265 ()
 
             if [ -f "$H265_MPG_Video" ]; then # IF THERE IS A H265_MPG_Video file
                 if [ -s "$H265_MPG_Video" ]; then # IF H265_MPG_Video is not empty
-	            echo [ "$(date +"%T")" ]: H265_MPG_Video FILE "$H265_MPG_Video" EXISTS AND IS NOT EMPTY.
+	            echo -n [ "$(date +"%T")" ]: SUCCESSFULLY CONVERTED to H265_MPG_Video. "$H265_MPG_Video" EXISTS AND IS NOT EMPTY. # echo -n skips the trailing newline
 	            show_percent_savings "$2" "$H265_MPG_Video"
 	            if [ $4 != "Y" ]; then # Dont want to keep the H.264 mp4 source file
 	                echo [ "$(date +"%T")" ]: Deleting H.264 mp4 file "$2"
