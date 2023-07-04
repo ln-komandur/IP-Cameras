@@ -85,7 +85,7 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
     file_at_rel_path=$(echo "$log_line" | sed -r 's/.*?\,\s\"(.+?)\".*?$/\1/') # Take everything within quotes in the log line. https://www.baeldung.com/linux/process-a-bash-variable-with-sed
     user_name=$(echo "$log_line" | sed -r 's/.*?\]\s\[(.+?)\].*?$/\1/') # Find out which user uploaded
     user_home=$(getent passwd "$user_name" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
-    rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
+    rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the file at relative path. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
 
     echo [ "$(date +"%F %T")" ]: TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
     destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
@@ -120,7 +120,7 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
         echo [ "$(date +"%T")" ]: CHECKING IF "$mp4_src_file_name" can be converted now # Log the full source path
         if  test `find "$mp4_src_file_name" -mmin +2`; then # Is this file more than 2 minutes old. If not, it  is perhaps still being written to
             echo [ "$(date +"%T")" ]: CAN CONVERT "$mp4_src_file_name" as it more than 2 minutes old
-            file_name_only=$(echo "$mp4_src_file_name" | sed -r 's/(^\/.+)*(\/.+\..+)$/\2/') # Take everything after the last \/, including it, till the end in the log line. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
+            file_name_only=$(echo "$mp4_src_file_name" | sed -r 's/(^\/.+)*(\/.+\..+)$/\2/') # Take everything after the last \/, including it, till the end in the mp4 file name. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
             destination_file="$destination_path""$file_name_only"
 
             echo [ "$(date +"%T")" ]: DESTINATION OF MP4 FILE post conversion will be "$destination_file"
