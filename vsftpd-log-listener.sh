@@ -87,8 +87,10 @@ tail -F /var/log/vsftpd.log | grep --line-buffered -Po "^.+?OK\sUPLOAD.+?.\mp4.+
     user_home=$(getent passwd "$user_name" | cut -d: -f6) # Get the home directory of that user. Refer https://superuser.com/questions/484277/get-home-directory-by-username
     rel_path=$(echo "$file_at_rel_path" | sed -r 's/(^\/.+)*\/(.+)\.(.+)$/\1/') # Take everything from the first \/ and before the last \/ character in the file at relative path. https://stackoverflow.com/questions/9363145/regex-for-extracting-filename-from-path
 
-    echo [ "$(date +"%F %T")" ]: TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path"
+    echo [ "$(date +"%F %T")" ]: TRIGGERED BASED ON FILE UPLOADED AT PATH "$user_home""$file_at_rel_path". SLEEPING 120 seconds
     destination_path="$user_home""$rel_path" # Default value if the external mount point is not mounted, or it is the same as the mount point of the users home
+
+    sleep 120 # Sleep for 2 minutes for any pending writes to be completed. This helps to catch the last mp4 file of the day, as the same folder will not be looked at again. The next day, the script will work on a different date folder. Without sleep, the last file of a day will get skipped / looked over
 
     ## Set the path to the destination file - Begin
     if mountpoint -q "$ext_dr_mnt_pt"; then # Check if the external drive is already / still mounted
