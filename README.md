@@ -160,7 +160,7 @@ Refer [How to Run Shell Script as Systemd in Linux](https://tecadmin.net/run-she
 
 `sudo nano /lib/systemd/system/vsftpd-log-listener.service` # *Create a service for the listener*
 
-Copy the following lines and save the file
+Copy the following lines and save the file. ***Note*** : Edit the name of the paths correctly based on the user name on your system
 ```
 [Unit]
 Description=Watches vsftp log for successful uploads, and converts .mp4 files with H.264 codecs to .mpg files with H.265 codecs
