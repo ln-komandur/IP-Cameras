@@ -21,7 +21,11 @@
 ### BIOS
 Use relevant settings to automatically power on after a power failure
 
-### Install vsftpd
+### Part 1
+
+Download and execute [install-vsftpd-and-others.sh](install-vsftpd-and-others.sh) to complete sections numbered 1.1 to 1.6
+
+### 1.1 Install vsftpd
 
 Refer [How to install FTP server (VSFTPD) on Ubuntu](https://www.programbr.com/ubuntu/how-to-install-ftp-server-vsftpd-on-ubuntu/)
 
@@ -40,7 +44,7 @@ Refer [How to install FTP server (VSFTPD) on Ubuntu](https://www.programbr.com/u
 `hostname` # *Get the hostname to provide in Filezilla for test and to provide in each IP Camera*
 
 
-### Configure ufw
+### 1.2 Configure ufw
 
 `sudo ufw status` # *Check the firewall's status. Could be inactive*
 
@@ -61,18 +65,18 @@ Refer [How to install FTP server (VSFTPD) on Ubuntu](https://www.programbr.com/u
 `sudo ufw status` # *Check if UFW is active*
 
 
-### ftp user id
+### 1.3 ftp user id
 `sudo adduser ipcamera` # *Add a user just to ftp photos and video clips from ip cameras*
 
 `echo "ipcamera" | sudo tee -a /etc/vsftpd.userlist` # *Add that user to the list of users who can use vsftpd*
 
 `cat /etc/vsftpd.userlist` # *Check if the user is added to the list of users who can use vsftpd*
 
-### Generate certificate
+### 1.4 Generate certificate
 `sudo openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem` # *Generate a 2048-bit RSA key and self-signed SSL certificate that will be valid for 7300 days*
 
 
-### Configure vsftpd
+### 1.5 Configure vsftpd
 `sudo nano /etc/vsftpd.conf` # *Open the conf file*
 
 Edit as needed for the following fields and values. Refer [Setting up vsftp](https://unix.stackexchange.com/questions/654625/setting-up-vsftp) , [Configuring the FTP Server](https://docs.openeuler.org/en/docs/20.09/docs/Administration/configuring-the-ftp-server.html)
@@ -100,16 +104,16 @@ userlist_file=/etc/vsftpd.userlist
 userlist_deny=NO
 ```
 
-**Optional**
+**Optional** - not covered in auto install shell script
 
 `listen_ipv6=NO` # *May not use IPv6*
 
 
-**Not sure**
+**Not sure** - not covered in auto install shell script
 
 `listen = YES` # *Refer [using standalone mode or not](https://www.ibiblio.org/pub/Linux/docs/linux-doc-project/linuxfocus/English/Archives/lf-2004_07-0341.pdf). Using standalone mode [allows the server to be accessible to clients connect via two network interfaces](https://serverfault.com/questions/454599/configure-ftp-server-with-two-different-ip-addresses-on-different-subnets-and-se), such as ethernet and wifi*
 
-### Restart vsftpd
+### 1.6 Restart vsftpd
 `sudo systemctl restart vsftpd` # *Restart vsftpd for changes to take effect*
 
 ## Test vsftpd
