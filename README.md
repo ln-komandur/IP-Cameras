@@ -14,7 +14,9 @@
 1.   Ubuntu 22.04 desktop
 2.   vsftpd
 3.   Filezilla
-4.   Reolink [RLC-510WA firmware version 1.0.280 (1387_22100633)](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak)
+4.   Firmware
+     1. Obsolete - Reolink [RLC-510WA firmware version 1.0.280 (v3.1.0.1387_22100633)](https://support.reolink.com/attachments/token/1ISbkfiJ3uJ2rganejlK6JUvG/?name=IPC_523128M5MP.1387_22100633.RLC-510WA.OV05A10.5MP.WIFI1021.REOLINK.pak) to address [issue with connecting to Filezilla FTP](https://www.reddit.com/r/reolinkcam/comments/10iv3di/comment/j5osusf)
+     2. Reolink [RLC-510WA firmware version 1.0.286 (v3.1.0.4163_2411251398](https://home-cdn.reolink.us/wp-content/uploads/2025/01/100824011736497441.357.zip?download_name=RLC_510WA_4163_2411251398.zip) to enable NTP Auto sync and pet detection. Refer *google drive* for own copy of this version downloaded in March 2025
 
 ## On ubuntu desktop
 
